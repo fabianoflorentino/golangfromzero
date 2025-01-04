@@ -4,13 +4,7 @@ WORKDIR /golangdozero
 
 COPY . .
 
-RUN go build -o /go/bin/golangdozero cmd/golangdozero/main.go
-
-FROM alpine:3.21 as golangdozero
-
-COPY --from=builder /go/bin/golangdozero /go/bin/golangdozero
-
-RUN apk update && apk upgrade --no-cache
+RUN apk update && apk upgrade
 
 ENTRYPOINT [ "/bin/sh" ]
 CMD ["-c", "while true; do echo 'Aprenda Goland do zero...'; sleep 300; done"]
