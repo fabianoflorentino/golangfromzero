@@ -1,6 +1,6 @@
 // Package sendmail provides utilities for validating email addresses.
 // It uses the checkmail library to verify the format of the email addresses.
-package sendmail
+package fundamentos_da_linguagem
 
 import (
 	"github.com/badoux/checkmail"
@@ -16,7 +16,7 @@ import (
 // Returns:
 //
 //	A string indicating whether the email format is valid or not.
-func CheckEmail(email string) string {
+func PacoteExterno(email string) string {
 	if checkmail.ValidateFormat(email) != nil {
 		return "Email inválido!"
 	}
