@@ -21,7 +21,7 @@ func TypeVariables() string {
 	const constante1 string = "Constante 1"
 
 	variavel := fmt.Sprintf(
-		"\nvar1: %s :: %T\nvar2: %s :: %T\nvar3: %s :: %T\nvar4: %s :: %T\nvar5: %s :: %T\nvar6: %s :: %T\nconstante1: %s :: %T\n",
+		"\nvar1: %s :: %T\nvar2: %s :: %T\nvar3: %s :: %T\nvar4: %s :: %T\nvar5: %s :: %T\nvar6: %s :: %T\nconstante1: %s :: %T",
 		var1, var1, var2, var2, var3, var3, var4, var4, var5, var5, var6, var6, constante1, constante1,
 	)
 
