@@ -8,15 +8,15 @@ import "fmt"
 // of the Go programming language, including variable declarations, constants,
 // and formatted string operations.
 func TypeVariables() string {
-	var var1 string = "Variável 1"
-	var2 := "Variável 2"
+	var var1 string = "variable 1"
+	var2 := "variable 2"
 
 	var (
-		var3 string = "Variável 3"
-		var4 string = "Variável 4"
+		var3 string = "variable 3"
+		var4 string = "variable 4"
 	)
 
-	var5, var6 := "Variável 5", "Variável 6"
+	var5, var6 := "variable 5", "variable 6"
 
 	const constante1 string = "Constante 1"
 
