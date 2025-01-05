@@ -1,16 +1,16 @@
 ---
 services:
-  golangdozero:
-    image: fabianoflorentino/golangdozero:v1.0
+  golangfromzero:
+    image: fabianoflorentino/golangfromzero:v1.0
     build:
       context: .
       dockerfile: build/Dockerfile
     env_file:
       - configs/.env
     networks:
-      - golangdozero
+      - golangfromzero
     volumes:
-      - .:/golangdozero
+      - .:/golangfromzero
     tty: true
     stdin_open: true
     healthcheck:
@@ -20,6 +20,6 @@ services:
       retries: 3
 
 networks:
-  golangdozero:
-    name: golangdozero
+  golangfromzero:
+    name: golangfromzero
     driver: bridge
