@@ -1,16 +1,19 @@
 package main
 
 import (
-	"github.com/fabianoflorentino/golangdozero/pkg/fundamentos_da_linguagem"
+	"github.com/fabianoflorentino/golangdozero/internal/fundamentals_of_language"
 )
 
 func main() {
-	println("Aprenda Golang do Zero!")
+	println("Leard Golang from Zero!")
 
-	println("\n5. Pacotes Exeternos\n")
-	println("fabianoflorentino@outlook.com: ", fundamentos_da_linguagem.PacoteExterno("fabianoflorentino@outlook.com"))
-	println("invalido: ", fundamentos_da_linguagem.PacoteExterno("invalido"))
+	println("\n5. External Packages\n")
+	println("fabianoflorentino@outlook.com: ", fundamentals_of_language.ExternalPackages("fabianoflorentino@outlook.com"))
+	println("invalid: ", fundamentals_of_language.ExternalPackages("invalid"))
 
-	println("\n6. Variáveis")
-	println(fundamentos_da_linguagem.Variaveis())
+	println("\n6. Variables")
+	println(fundamentals_of_language.TypeVariables())
+
+	println("\n7. Type of Data")
+	println(fundamentals_of_language.TypeOfData())
 }
