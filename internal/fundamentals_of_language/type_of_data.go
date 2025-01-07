@@ -30,7 +30,7 @@ func TypeOfData() string {
 	var caracter byte = 'A'
 
 	variavel := fmt.Sprintf(
-		"\nIntNumber64: %d :: %T\nIntNumber32: %d :: %T\nnumeroUintero64: %d :: %T\nnumeroUintero32: %d :: %T\nnumeroReal64: %f :: %T\nnumeroReal32: %f :: %T\nnumeroComplexo: %f :: %T\nnumeroComplexo2: %f :: %T\nbooleano: %t :: %T\ntexto: %s :: %T\ncaracter: %c :: %T\n",
+		"\nIntNumber64: %d :: %T\nIntNumber32: %d :: %T\nnumeroUintero64: %d :: %T\nnumeroUintero32: %d :: %T\nnumeroReal64: %f :: %T\nnumeroReal32: %f :: %T\nnumeroComplexo: %f :: %T\nnumeroComplexo2: %f :: %T\nbooleano: %t :: %T\ntexto: %s :: %T\ncaracter: %c :: %T",
 		IntNumber64, IntNumber64, IntNumber32, IntNumber32, numberUintero64, numberUintero64, numberUintero32, numberUintero32, numberReal64, numberReal64, numberReal32, numberReal32, numberComplex, numberComplex, numberComplex2, numberComplex2, booleano, booleano, texto, texto, caracter, caracter,
 	)
 
