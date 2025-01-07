@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/fabianoflorentino/golangdozero/internal/fundamentals_of_language"
+	"github.com/fabianoflorentino/golangfromzero/internal/fundamentals_of_language"
 )
 
 func main() {
@@ -16,4 +16,7 @@ func main() {
 
 	println("\n7. Type of Data")
 	println(fundamentals_of_language.TypeOfData())
+
+	println("\n8. Type of Functions")
+	fundamentals_of_language.TypeOfFunctions()
 }
