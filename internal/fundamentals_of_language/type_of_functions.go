@@ -48,13 +48,13 @@ var functionVariable = func(text string) string {
 func TypeOfFunctions() {
 
 	resSum := sum(1, 2)
-	fmt.Printf("\n%v\nresult: %v\n", trim.String(funcExampleWithReturn), resSum)
+	fmt.Printf("\n%v\nexample of result: %v\n", trim.String(funcExampleWithReturn), resSum)
 
 	resultSum, resultSub := sumAndsub(10, 10)
-	fmt.Printf("\n%v\nresult: %v, %v", trim.String(funcExampleWithMoreThanOneReturn), resultSum, resultSub)
+	fmt.Printf("\n%v\nexample of result: %v, %v", trim.String(funcExampleWithMoreThanOneReturn), resultSum, resultSub)
 
 	funcVariableResult := functionVariable("Hey, Go!")
-	fmt.Printf("\n\n%v\nresult: %v", trim.String(funcExampleWithVariable), funcVariableResult)
+	fmt.Printf("\n\n%v\nexample of result: %v", trim.String(funcExampleWithVariable), funcVariableResult)
 }
 
 // sum takes two integers, num1 and num2, and returns their sum.
