@@ -1,4 +1,4 @@
-module github.com/fabianoflorentino/golangdozero
+module github.com/fabianoflorentino/golangfromzero
 
 go 1.23
 
