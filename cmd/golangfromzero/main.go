@@ -19,4 +19,7 @@ func main() {
 
 	println("\n8. Type of Functions")
 	fundamentals_of_language.TypeOfFunctions()
+
+	println("\n9. Operators")
+	fundamentals_of_language.Operators()
 }
