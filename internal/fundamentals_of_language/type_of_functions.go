@@ -53,7 +53,7 @@ func TypeOfFunctions() {
 	resultSum, resultSub := sumAndsub(10, 10)
 	fmt.Printf("\n%v\nexample of result: %v, %v", trim.String(funcExampleWithMoreThanOneReturn), resultSum, resultSub)
 
-	funcVariableResult := functionVariable("Hey, Go!")
+	funcVariableResult := functionVariable("Hey, Go!\n")
 	fmt.Printf("\n\n%v\nexample of result: %v", trim.String(funcExampleWithVariable), funcVariableResult)
 }
 
