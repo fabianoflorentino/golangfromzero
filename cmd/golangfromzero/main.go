@@ -25,4 +25,7 @@ func main() {
 
 	println("\n10. Type of Struct")
 	fundamentals_of_language.TypeOfStruct()
+
+	println("\n11. Inheritance but not")
+	fundamentals_of_language.InheritanceButNot()
 }
