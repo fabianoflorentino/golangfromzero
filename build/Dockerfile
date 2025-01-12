@@ -7,4 +7,4 @@ COPY . .
 RUN apk update && apk upgrade
 
 ENTRYPOINT [ "/bin/sh" ]
-CMD ["-c", "while true; do echo 'Aprenda Goland do zero...'; sleep 300; done"]
+CMD ["-c", "while true; do echo 'Goland from zero...'; sleep 300; done"]
