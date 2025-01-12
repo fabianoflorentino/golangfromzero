@@ -38,6 +38,8 @@ if condition {
 // on two integers (num1 and num2) and prints the results.
 func Operators() {
 
+	trim := trim.New()
+
 	// The following code demonstrates the use of arithmetic operators on two integers.
 	// The result of the addition operation is of type int.
 	// The result of the subtraction operation is of type int.

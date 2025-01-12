@@ -46,6 +46,7 @@ var functionVariable = func(text string) string {
 // and functions assigned to variables. The function prints the results of these examples
 // using the fmt.Printf function.
 func TypeOfFunctions() {
+	trim := trim.New()
 
 	resSum := sum(1, 2)
 	fmt.Printf("\n%v\nexample of result: %v\n", trim.String(funcExampleWithReturn), resSum)
