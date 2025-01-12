@@ -1,6 +1,6 @@
 FROM golang:alpine3.21 as builder
 
-WORKDIR /golangdozero
+WORKDIR /golangfromzero
 
 COPY . .
 
