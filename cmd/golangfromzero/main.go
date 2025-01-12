@@ -22,4 +22,7 @@ func main() {
 
 	println("\n9. Operators")
 	fundamentals_of_language.Operators()
+
+	println("\n10. Type of Struct")
+	fundamentals_of_language.TypeOfStruct()
 }
