@@ -28,4 +28,7 @@ func main() {
 
 	println("\n11. Inheritance but not")
 	fundamentals_of_language.InheritanceButNot()
+
+	println("\n12. Pointers")
+	fundamentals_of_language.Pointers()
 }
