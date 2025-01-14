@@ -13,7 +13,11 @@ import (
 // When `a` is incremented, `b` remains unchanged because `b` holds a copy of the value of `a`.
 var (
 	exampleWithoutPointer = `
-var a int = 10
+// withoutPointer demonstrates how variable assignment works in Go when not using pointers.
+// It shows that assigning one variable to another creates a copy, so changes to the original
+// variable do not affect the copied variable.
+
+	var a int = 10
 var b int = a
 
 fmt.Println(a, b) // 10 10
@@ -24,6 +28,11 @@ fmt.Println(a, b) // 11 10
 `
 
 	exampleWithPointer = `
+// withPointer demonstrates the use of pointers in Go.
+// It initializes an integer variable 'a' with a value of 10 and a pointer 'b' that points to 'a'.
+// It prints the values of 'a' and the value pointed to by 'b', which are initially the same.
+// Then, it increments 'a' and prints the values again, showing that the value pointed to by 'b' also changes.
+
 var a int = 10
 var b *int = &a
 var a int = 10
