@@ -31,6 +31,18 @@ Example 3:
 
 arr3 := [...]int{1, 2, 3, 4, 5}
 `
+
+	exampleSlice = `
+// typeOfSlice demonstrates the creation and initialization of a slice in Go.
+// It declares a slice of integers with a length of 3 and prints the slice and its type.
+
+Example:
+
+slice := []int{1, 2, 3}
+
+// Append a new element to the slice.
+slice = append(slice, 4)
+`
 )
 
 // ArraysAndSlices demonstrates the usage of fixed-length arrays in Go.
@@ -43,6 +55,10 @@ func ArraysAndSlices() {
 	println("\nWith fixed-length arrays:\n")
 	println(trim.String(exampleArrayWithLength))
 	arrayWithLength()
+
+	println("\nWith slices:\n")
+	println(trim.String(exampleSlice))
+	typeOfSlice()
 }
 
 // arrayWithLength demonstrates the creation and initialization of a fixed-length array in Go.
@@ -59,4 +75,14 @@ func arrayWithLength() {
 
 	arr3 := [...]int{1, 2, 3, 4, 5}
 	fmt.Println("\nResult Example 3: ", arr3)
+}
+
+// typeOfSlice demonstrates how to create a slice of integers and print its type and value.
+// It initializes a slice with three integers and uses fmt.Printf to display the type (%T) and value (%v) of the slice.
+func typeOfSlice() {
+	slice := []int{1, 2, 3}
+	fmt.Printf("\nResult Example 1:\nType: %T, Result: %v", slice, slice)
+
+	slice = append(slice, 4)
+	fmt.Printf("\n\nResult Example 2: with append(slice, 4)\nType: %T, Result: %v\n", slice, slice)
 }
