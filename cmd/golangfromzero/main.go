@@ -29,6 +29,9 @@ func main() {
 	println("\n11. Inheritance but not")
 	fundamentals_of_language.InheritanceButNot()
 
-	println("\n12. Pointers")
+	println("\n12. Arrays and Slices")
+	fundamentals_of_language.ArraysAndSlices()
+
+	println("\n13. Pointers")
 	fundamentals_of_language.Pointers()
 }
