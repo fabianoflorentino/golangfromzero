@@ -4,7 +4,8 @@ WORKDIR /golangfromzero
 
 COPY . .
 
-RUN apk update && apk upgrade
+RUN apk update && apk upgrade \
+  && go mod download
 
 ENTRYPOINT [ "/bin/sh" ]
 CMD ["-c", "while true; do echo 'Goland from zero...'; sleep 300; done"]
