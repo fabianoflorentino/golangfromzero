@@ -34,4 +34,7 @@ func main() {
 
 	println("\n13. Pointers")
 	fundamentals_of_language.Pointers()
+
+	println("\n14. Internal Arrays")
+	fundamentals_of_language.InternalArrays()
 }
