@@ -1,7 +1,7 @@
 ---
 services:
   golangfromzero:
-    image: fabianoflorentino/golangfromzero:v1.0
+    image: fabianoflorentino/golangfromzero:v0.0.1
     build:
       context: .
       dockerfile: build/Dockerfile
