@@ -8,6 +8,8 @@ services:
       target: development
     volumes:
       - ./:/golangfromzero
+    ports:
+      - "6000:6000"
     tty: true
     stdin_open: true
     healthcheck:
