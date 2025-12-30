@@ -1,36 +1,40 @@
 package routes
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/fabianoflorentino/golangfromzero/src/controllers"
+)
 
 var UsersRoutes = []Route{
 	{
 		URI:           "/users",
 		Method:        http.MethodPost,
-		Function:      func(w http.ResponseWriter, r *http.Request) {},
+		Function:      controllers.Create,
 		Authenticated: false,
 	},
 	{
 		URI:           "/users",
 		Method:        http.MethodGet,
-		Function:      func(w http.ResponseWriter, r *http.Request) {},
+		Function:      controllers.GetAll,
 		Authenticated: false,
 	},
 	{
 		URI:           "/users/{userId}",
 		Method:        http.MethodGet,
-		Function:      func(w http.ResponseWriter, r *http.Request) {},
+		Function:      controllers.GetByID,
 		Authenticated: false,
 	},
 	{
 		URI:           "/users/{userId}",
 		Method:        http.MethodPut,
-		Function:      func(w http.ResponseWriter, r *http.Request) {},
+		Function:      controllers.Update,
 		Authenticated: false,
 	},
 	{
 		URI:           "/users/{userId}",
 		Method:        http.MethodDelete,
-		Function:      func(w http.ResponseWriter, r *http.Request) {},
+		Function:      controllers.Delete,
 		Authenticated: false,
 	},
 }
