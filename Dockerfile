@@ -15,6 +15,8 @@ RUN go install github.com/air-verse/air@latest
 
 COPY --from=base /golangfromzero/config/.env.example /root/.env
 
+EXPOSE 6000
+
 ENTRYPOINT [ "/go/bin/air" ]
 CMD [ "-c", "/golangfromzero/.air.toml" ]
 
