@@ -6,6 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: development
+    env_file:
+      - /config/s.env
     depends_on:
       database:
         condition: service_healthy
@@ -24,10 +26,8 @@ services:
       retries: 3
   database:
     image: postgres:16-alpine3.23
-    environment:
-      POSTGRES_USER: golangfromzero
-      POSTGRES_PASSWORD: golangfromzero
-      POSTGRES_DB: golangfromzero
+    env_file:
+      - /config/.env
     ports:
       - "5432:5432"
     networks:
