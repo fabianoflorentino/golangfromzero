@@ -6,10 +6,15 @@ services:
       context: .
       dockerfile: Dockerfile
       target: development
+    depends_on:
+      database:
+        condition: service_healthy
     volumes:
       - ./:/golangfromzero
     ports:
       - "6000:6000"
+    networks:
+      - golangfromzero-network
     tty: true
     stdin_open: true
     healthcheck:
@@ -17,3 +22,28 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
+  database:
+    image: postgres:16-alpine3.23
+    environment:
+      POSTGRES_USER: golangfromzero
+      POSTGRES_PASSWORD: golangfromzero
+      POSTGRES_DB: golangfromzero
+    ports:
+      - "5432:5432"
+    networks:
+      - golangfromzero-network
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  golangfromzero-network:
+    driver: bridge
