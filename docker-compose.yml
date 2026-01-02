@@ -7,14 +7,14 @@ services:
       dockerfile: Dockerfile
       target: development
     env_file:
-      - /config/s.env
+      - ./config/.env
     depends_on:
       database:
         condition: service_healthy
     volumes:
       - ./:/golangfromzero
     ports:
-      - "6000:6000"
+      - "${SERVER_PORT:-6000}:6000"
     networks:
       - golangfromzero-network
     tty: true
@@ -27,7 +27,7 @@ services:
   database:
     image: postgres:16-alpine3.23
     env_file:
-      - /config/.env
+      - ./config/.env
     ports:
       - "5432:5432"
     networks:
