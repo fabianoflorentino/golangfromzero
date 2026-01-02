@@ -8,41 +8,43 @@ import (
 	"github.com/fabianoflorentino/golangfromzero/database"
 	"github.com/fabianoflorentino/golangfromzero/repository"
 	"github.com/fabianoflorentino/golangfromzero/src/models"
+	"github.com/fabianoflorentino/golangfromzero/src/response"
 )
 
 // Create handles the creation of a new user
 func Create(w http.ResponseWriter, r *http.Request) {
 	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "failed to read request body", http.StatusBadRequest)
+		response.Err(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	var u models.User
-	if err := json.Unmarshal(requestBody, &u); err != nil {
-		http.Error(w, "failed, invalid JSON", http.StatusBadRequest)
+	var user models.User
+	if err := json.Unmarshal(requestBody, &user); err != nil {
+		response.Err(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := user.Validate(); err != nil {
+		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
 
 	db, err := database.Connect()
 	if err != nil {
-		http.Error(w, "database unavailable", http.StatusInternalServerError)
+		response.Err(w, http.StatusInternalServerError, err)
 		return
 	}
 	defer db.Close()
 
 	repository := repository.NewUsersRepository(db)
-	id, err := repository.Create(u)
+	user.ID, err = repository.Create(user)
 	if err != nil {
-		http.Error(w, "failed to create user", http.StatusInternalServerError)
+		response.Err(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]any{
-		"id":      id,
-		"message": "user created",
-	})
+	response.JSON(w, http.StatusCreated, user)
 }
 
 // GetAll retrieves all users
