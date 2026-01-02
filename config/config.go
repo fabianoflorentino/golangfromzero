@@ -18,7 +18,8 @@ func LoadEnv() {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	Port, err = strconv.Atoi(os.Getenv("SERVER_PORT"))
+	serverPort := os.Getenv("SERVER_PORT")
+	Port, err = strconv.Atoi(serverPort)
 	if err != nil {
 		Port = 6000
 	}
