@@ -15,6 +15,7 @@ func Err(w http.ResponseWriter, statusCode int, err error) {
 }
 
 func JSON(w http.ResponseWriter, statusCode int, dataResponse any) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
 	if err := json.NewEncoder(w).Encode(dataResponse); err != nil {
