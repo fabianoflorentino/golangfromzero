@@ -16,23 +16,23 @@ var UsersRoutes = []Route{
 	{
 		URI:           "/users",
 		Method:        http.MethodGet,
-		Function:      controllers.GetAll,
+		Function:      controllers.SearchByName,
 		Authenticated: false,
 	},
 	{
-		URI:           "/users/{userId}",
+		URI:           "/users/{userID}",
 		Method:        http.MethodGet,
-		Function:      controllers.GetByID,
+		Function:      controllers.SearchByID,
 		Authenticated: false,
 	},
 	{
-		URI:           "/users/{userId}",
+		URI:           "/users/{userID}",
 		Method:        http.MethodPut,
 		Function:      controllers.Update,
 		Authenticated: false,
 	},
 	{
-		URI:           "/users/{userId}",
+		URI:           "/users/{userID}",
 		Method:        http.MethodDelete,
 		Function:      controllers.Delete,
 		Authenticated: false,
