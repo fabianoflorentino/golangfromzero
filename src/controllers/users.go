@@ -28,7 +28,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := user.Validate(); err != nil {
+	if err := user.Validate("new"); err != nil {
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
@@ -67,6 +67,11 @@ func SearchByName(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if users == nil {
+		response.JSON(w, http.StatusOK, "there no users found")
+		return
+	}
+
 	response.JSON(w, http.StatusOK, users)
 }
 
@@ -77,6 +82,7 @@ func SearchByID(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(ui["userID"])
 	if err != nil {
 		response.Err(w, http.StatusBadRequest, err)
+		return
 	}
 
 	db, err := database.Connect()
@@ -89,6 +95,11 @@ func SearchByID(w http.ResponseWriter, r *http.Request) {
 	repository := repository.NewUsersRepository(db)
 	userByID, err := repository.SearchByID(id)
 	if err != nil {
+		if strings.Contains("no rows in result set", err.Error()) {
+			response.JSON(w, http.StatusOK, "there no users found")
+			return
+		}
+
 		response.Err(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -98,10 +109,69 @@ func SearchByID(w http.ResponseWriter, r *http.Request) {
 
 // Update modifies an existing user
 func Update(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("User updated"))
+	ui := mux.Vars(r)
+
+	id, err := uuid.Parse(ui["userID"])
+	if err != nil {
+		response.Err(w, http.StatusBadRequest, err)
+		return
+	}
+
+	requestBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		response.Err(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	var user models.User
+	if err := json.Unmarshal(requestBody, &user); err != nil {
+		response.Err(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := user.Validate("update"); err != nil {
+		response.Err(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Err(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewUsersRepository(db)
+	if err = repository.Update(id, user); err != nil {
+		response.Err(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusNoContent, nil)
 }
 
 // Delete removes a user
 func Delete(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("User deleted"))
+	ui := mux.Vars(r)
+
+	id, err := uuid.Parse(ui["userID"])
+	if err != nil {
+		response.Err(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Err(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewUsersRepository(db)
+	if err := repository.Delete(id); err != nil {
+		response.Err(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusNoContent, err)
 }
