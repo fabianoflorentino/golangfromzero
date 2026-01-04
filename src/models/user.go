@@ -17,8 +17,8 @@ type User struct {
 }
 
 // Validate check if any field is blank, and with all leading and trailing white space removed
-func (u *User) Validate() error {
-	if err := u.isBlank(); err != nil {
+func (u *User) Validate(register string) error {
+	if err := u.isBlank(register); err != nil {
 		return err
 	}
 
@@ -27,7 +27,7 @@ func (u *User) Validate() error {
 	return nil
 }
 
-func (u *User) isBlank() error {
+func (u *User) isBlank(register string) error {
 	if u.Name == "" {
 		return ErrNameBlank
 	}
@@ -36,7 +36,7 @@ func (u *User) isBlank() error {
 		return ErrEmailBlank
 	}
 
-	if u.Password == "" {
+	if u.isNewRegister(register) && u.Password == "" {
 		return ErrPasswordBlank
 	}
 
@@ -46,4 +46,12 @@ func (u *User) isBlank() error {
 func (u *User) trimSpace() {
 	strings.TrimSpace(u.Name)
 	strings.TrimSpace(u.Email)
+}
+
+func (u *User) isNewRegister(register string) bool {
+	if register == "new" {
+		return true
+	}
+
+	return false
 }
