@@ -66,6 +66,33 @@ func (r UserRepository) SearchByID(id uuid.UUID) (*models.User, error) {
 	if err := r.db.QueryRow(ctx, query, id).Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt); err != nil {
 		return nil, err
 	}
+	r.db.Close()
 
 	return &user, nil
+}
+
+func (r UserRepository) Update(id uuid.UUID, user models.User) error {
+	query := `UPDATE users SET name = $1, email = $2 WHERE id = $3`
+
+	ctx := context.Background()
+
+	if _, err := r.db.Exec(ctx, query, user.Name, user.Email, id); err != nil {
+		return err
+	}
+	r.db.Close()
+
+	return nil
+}
+
+func (r UserRepository) Delete(id uuid.UUID) error {
+	query := `DELETE FROM users WHERE id = $1`
+
+	ctx := context.Background()
+
+	if _, err := r.db.Exec(ctx, query, id); err != nil {
+		return err
+	}
+	r.db.Close()
+
+	return nil
 }
