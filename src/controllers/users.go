@@ -148,6 +148,14 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	repository := repository.NewUsersRepository(db)
+
+	if _, err := repository.SearchByID(id); err != nil {
+		if strings.Contains("no rows in result set", err.Error()) {
+			response.JSON(w, http.StatusNotFound, "there no users found")
+			return
+		}
+	}
+
 	if err = repository.Update(id, user); err != nil {
 		response.Err(w, http.StatusInternalServerError, err)
 		return
