@@ -1,6 +1,7 @@
 package models
 
 import (
+	"net/mail"
 	"strings"
 	"time"
 
@@ -36,6 +37,10 @@ func (u *User) isBlank(register string) error {
 		return ErrEmailBlank
 	}
 
+	if err := u.isValidEmail(u.Email); err != nil {
+		return err
+	}
+
 	if u.isNewRegister(register) && u.Password == "" {
 		return ErrPasswordBlank
 	}
@@ -54,4 +59,12 @@ func (u *User) isNewRegister(register string) bool {
 	}
 
 	return false
+}
+
+func (u *User) isValidEmail(email string) error {
+	if _, err := mail.ParseAddress(email); err != nil {
+		return ErrInvalidEmailFormat
+	}
+
+	return nil
 }
