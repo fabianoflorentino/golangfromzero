@@ -161,7 +161,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusNoContent, nil)
+	response.JSON(w, http.StatusNoContent, "")
 }
 
 // Delete removes a user
@@ -187,5 +187,5 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusNoContent, err)
+	response.JSON(w, http.StatusNoContent, "")
 }
