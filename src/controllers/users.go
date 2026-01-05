@@ -43,6 +43,12 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	repository := repository.NewUsersRepository(db)
 	user.ID, err = repository.Create(user)
 	if err != nil {
+
+		if strings.Contains(err.Error(), "email already used") {
+			response.Err(w, http.StatusBadRequest, err)
+			return
+		}
+
 		response.Err(w, http.StatusInternalServerError, err)
 		return
 	}
