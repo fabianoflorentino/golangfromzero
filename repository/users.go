@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/fabianoflorentino/golangfromzero/src/models"
 	"github.com/google/uuid"
@@ -24,6 +26,10 @@ func (r UserRepository) Create(user models.User) (uuid.UUID, error) {
 	var id uuid.UUID
 
 	if err := r.db.QueryRow(ctx, query, user.Name, user.Email, user.Password).Scan(&id); err != nil {
+		if strings.Contains(err.Error(), "users_email_key") {
+			return uuid.Nil, errors.New("email already used")
+		}
+
 		return uuid.Nil, err
 	}
 
