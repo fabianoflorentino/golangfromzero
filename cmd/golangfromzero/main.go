@@ -26,7 +26,7 @@ func main() {
 	defer db.Close()
 
 	r := router.NewRouter()
-	appPort := fmt.Sprintf(":%d", config.Port)
+	appPort := fmt.Sprintf(":%v", config.AppPort())
 
 	if err := http.ListenAndServe(appPort, r); err != nil {
 		log.Fatal(err)
