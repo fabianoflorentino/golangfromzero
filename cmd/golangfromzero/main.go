@@ -14,7 +14,10 @@ import (
 )
 
 func main() {
-	config.LoadEnv()
+	if err := config.LoadEnv(); err != nil {
+		log.Printf("[ERROR]: %v", err.Error())
+		return
+	}
 
 	ctx := context.Background()
 	dsn := database.ConnectionString
