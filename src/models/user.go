@@ -48,11 +48,13 @@ func (u *User) isBlank() error {
 	return nil
 }
 
+// trimSpace remove blanks spaces before and after the string.
 func (u *User) trimSpace() {
 	strings.TrimSpace(u.Name)
 	strings.TrimSpace(u.Email)
 }
 
+// isNewRegister validate if registry is new.
 func (u *User) isNewRegister(register string) bool {
 	if register == "new" {
 		return true
@@ -61,6 +63,7 @@ func (u *User) isNewRegister(register string) bool {
 	return false
 }
 
+// isValidEmail parses a single RFC 5322 address using mail.ParseAddress
 func (u *User) isValidEmail(email string) error {
 	if _, err := mail.ParseAddress(email); err != nil {
 		return ErrInvalidEmailFormat
