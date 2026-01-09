@@ -1,21 +1,20 @@
 package config
 
 import (
-	"log"
 	"os"
 	"strconv"
 
 	"github.com/joho/godotenv"
 )
 
-var Port int
-var PathEnv string = "/golangfromzero/config"
-
-func LoadEnv() {
+func LoadEnv() error {
+	var PathEnv string = "/golangfromzero/config"
 
 	if err := godotenv.Load(PathEnv + "/.env"); err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+		return ErrLoadEnv
 	}
+
+	return nil
 }
 
 func AppPort() int {
