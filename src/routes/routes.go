@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 
+	"github.com/fabianoflorentino/golangfromzero/src/controllers"
 	"github.com/gorilla/mux"
 )
 
@@ -15,8 +16,8 @@ type Route struct {
 }
 
 // Configure sets up the routes in the provided router
-func Configure(r *mux.Router) *mux.Router {
-	u := UsersRoutes
+func Configure(r *mux.Router, userController *controllers.UserController) *mux.Router {
+	u := UserRouters(userController)
 
 	for _, route := range u {
 		r.HandleFunc(route.URI, route.Function).Methods(route.Method)
