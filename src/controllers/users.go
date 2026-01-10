@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -8,14 +9,23 @@ import (
 
 	"github.com/fabianoflorentino/golangfromzero/database"
 	"github.com/fabianoflorentino/golangfromzero/repository"
+	"github.com/fabianoflorentino/golangfromzero/src/helper"
 	"github.com/fabianoflorentino/golangfromzero/src/models"
 	"github.com/fabianoflorentino/golangfromzero/src/response"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
+type UserController struct {
+	cfg helper.Config
+}
+
+func NewUserController(cfg helper.Config) *UserController {
+	return &UserController{cfg: cfg}
+}
+
 // Create handles the creation of a new user
-func Create(w http.ResponseWriter, r *http.Request) {
+func (u *UserController) Create(w http.ResponseWriter, r *http.Request) {
 	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		response.Err(w, http.StatusUnprocessableEntity, err)
@@ -40,8 +50,11 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
+	ctx, cancel := context.WithTimeout(r.Context(), helper.ConfigTimeout.DatabaseTimeout)
+	defer cancel()
+
 	repository := repository.NewUsersRepository(db)
-	user.ID, err = repository.Create(user)
+	user.ID, err = repository.Create(ctx, user)
 	if err != nil {
 
 		if strings.Contains(err.Error(), "email already used") {
@@ -57,7 +70,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 }
 
 // SearchByName retrieves all users with contains a search name
-func SearchByName(w http.ResponseWriter, r *http.Request) {
+func (u *UserController) SearchByName(w http.ResponseWriter, r *http.Request) {
 	nameToSearch := strings.ToLower(r.URL.Query().Get("name"))
 	db, err := database.Connect()
 	if err != nil {
@@ -66,8 +79,11 @@ func SearchByName(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
+	ctx, cancel := context.WithTimeout(r.Context(), helper.ConfigTimeout.DatabaseTimeout)
+	defer cancel()
+
 	repository := repository.NewUsersRepository(db)
-	users, err := repository.SearchByName(nameToSearch)
+	users, err := repository.SearchByName(ctx, nameToSearch)
 	if err != nil {
 		response.Err(w, http.StatusInternalServerError, err)
 		return
@@ -82,7 +98,7 @@ func SearchByName(w http.ResponseWriter, r *http.Request) {
 }
 
 // SearchByID retrieves a user by their ID
-func SearchByID(w http.ResponseWriter, r *http.Request) {
+func (u *UserController) SearchByID(w http.ResponseWriter, r *http.Request) {
 	ui := mux.Vars(r)
 
 	id, err := uuid.Parse(ui["userID"])
@@ -98,8 +114,11 @@ func SearchByID(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
+	ctx, cancel := context.WithTimeout(r.Context(), helper.ConfigTimeout.DatabaseTimeout)
+	defer cancel()
+
 	repository := repository.NewUsersRepository(db)
-	userByID, err := repository.SearchByID(id)
+	userByID, err := repository.SearchByID(ctx, id)
 	if err != nil {
 		if strings.Contains("no rows in result set", err.Error()) {
 			response.JSON(w, http.StatusOK, "there no users found")
@@ -114,7 +133,7 @@ func SearchByID(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update modifies an existing user
-func Update(w http.ResponseWriter, r *http.Request) {
+func (u *UserController) Update(w http.ResponseWriter, r *http.Request) {
 	ui := mux.Vars(r)
 
 	id, err := uuid.Parse(ui["userID"])
@@ -147,16 +166,19 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
+	ctx, cancel := context.WithTimeout(r.Context(), helper.ConfigTimeout.DatabaseTimeout)
+	defer cancel()
+
 	repository := repository.NewUsersRepository(db)
 
-	if _, err := repository.SearchByID(id); err != nil {
+	if _, err := repository.SearchByID(ctx, id); err != nil {
 		if strings.Contains("no rows in result set", err.Error()) {
 			response.JSON(w, http.StatusNotFound, "there no users found")
 			return
 		}
 	}
 
-	if err = repository.Update(id, user); err != nil {
+	if err = repository.Update(ctx, id, user); err != nil {
 		response.Err(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -165,7 +187,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 }
 
 // Delete removes a user
-func Delete(w http.ResponseWriter, r *http.Request) {
+func (u *UserController) Delete(w http.ResponseWriter, r *http.Request) {
 	ui := mux.Vars(r)
 
 	id, err := uuid.Parse(ui["userID"])
@@ -181,8 +203,11 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
+	ctx, cancel := context.WithTimeout(r.Context(), helper.ConfigTimeout.DatabaseTimeout)
+	defer cancel()
+
 	repository := repository.NewUsersRepository(db)
-	if err := repository.Delete(id); err != nil {
+	if err := repository.Delete(ctx, id); err != nil {
 		response.Err(w, http.StatusInternalServerError, err)
 		return
 	}
