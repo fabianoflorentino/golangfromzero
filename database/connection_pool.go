@@ -24,6 +24,7 @@ type ConnectionPoolConfig struct {
 	HealthcheckPeriod     time.Duration
 }
 
+// LoadConnectionPoolConfig load the configurations from environment variables.
 func LoadConnectionPoolConfig() ConnectionPoolConfig {
 	return ConnectionPoolConfig{
 		Host:                  getEnv("DB_HOST", "localhost"),
@@ -40,6 +41,7 @@ func LoadConnectionPoolConfig() ConnectionPoolConfig {
 	}
 }
 
+// NewConnectionPool creates a new database connection pool
 func NewConnectionPool(ctx context.Context, cfg ConnectionPoolConfig) (*pgxpool.Pool, error) {
 	connectionString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database, cfg.SSLmode)
@@ -69,6 +71,7 @@ func NewConnectionPool(ctx context.Context, cfg ConnectionPoolConfig) (*pgxpool.
 	return connectionPool, nil
 }
 
+// getEnv get value from environment variable or set a default value
 func getEnv(env, defaultValue string) string {
 	if value := os.Getenv(env); value != "" {
 		return value
@@ -77,6 +80,7 @@ func getEnv(env, defaultValue string) string {
 	return defaultValue
 }
 
+// getEnvAsInt32 get value from environment variables converting string to int32 or set a default value
 func getEnvAsInt32(env string, defaultValue int32) int32 {
 	if value := os.Getenv(env); value != "" {
 		var intValue int32
@@ -88,6 +92,7 @@ func getEnvAsInt32(env string, defaultValue int32) int32 {
 	return defaultValue
 }
 
+// getEnvAsDuration get value from environment variables converting string to time.Duration or set a default value
 func getEnvAsDuration(env string, defaultValue time.Duration) time.Duration {
 	if value := os.Getenv(env); value != "" {
 		duration, err := time.ParseDuration(value)
