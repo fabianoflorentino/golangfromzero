@@ -7,21 +7,22 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/fabianoflorentino/golangfromzero/database"
 	"github.com/fabianoflorentino/golangfromzero/repository"
 	"github.com/fabianoflorentino/golangfromzero/src/helper"
 	"github.com/fabianoflorentino/golangfromzero/src/models"
 	"github.com/fabianoflorentino/golangfromzero/src/response"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserController struct {
 	cfg helper.Config
+	db  *pgxpool.Pool
 }
 
-func NewUserController(cfg helper.Config) *UserController {
-	return &UserController{cfg: cfg}
+func NewUserController(cfg helper.Config, db *pgxpool.Pool) *UserController {
+	return &UserController{cfg: cfg, db: db}
 }
 
 // Create handles the creation of a new user
@@ -43,17 +44,10 @@ func (u *UserController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := database.Connect()
-	if err != nil {
-		response.Err(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
-
-	ctx, cancel := context.WithTimeout(r.Context(), helper.ConfigTimeout.DatabaseTimeout)
+	ctx, cancel := context.WithTimeout(r.Context(), u.cfg.DatabaseTimeout)
 	defer cancel()
 
-	repository := repository.NewUsersRepository(db)
+	repository := repository.NewUsersRepository(u.db)
 	user.ID, err = repository.Create(ctx, user)
 	if err != nil {
 
@@ -72,17 +66,11 @@ func (u *UserController) Create(w http.ResponseWriter, r *http.Request) {
 // SearchByName retrieves all users with contains a search name
 func (u *UserController) SearchByName(w http.ResponseWriter, r *http.Request) {
 	nameToSearch := strings.ToLower(r.URL.Query().Get("name"))
-	db, err := database.Connect()
-	if err != nil {
-		response.Err(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
 
 	ctx, cancel := context.WithTimeout(r.Context(), helper.ConfigTimeout.DatabaseTimeout)
 	defer cancel()
 
-	repository := repository.NewUsersRepository(db)
+	repository := repository.NewUsersRepository(u.db)
 	users, err := repository.SearchByName(ctx, nameToSearch)
 	if err != nil {
 		response.Err(w, http.StatusInternalServerError, err)
@@ -107,17 +95,10 @@ func (u *UserController) SearchByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := database.Connect()
-	if err != nil {
-		response.Err(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
-
 	ctx, cancel := context.WithTimeout(r.Context(), helper.ConfigTimeout.DatabaseTimeout)
 	defer cancel()
 
-	repository := repository.NewUsersRepository(db)
+	repository := repository.NewUsersRepository(u.db)
 	userByID, err := repository.SearchByID(ctx, id)
 	if err != nil {
 		if strings.Contains("no rows in result set", err.Error()) {
@@ -159,17 +140,10 @@ func (u *UserController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := database.Connect()
-	if err != nil {
-		response.Err(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
-
 	ctx, cancel := context.WithTimeout(r.Context(), helper.ConfigTimeout.DatabaseTimeout)
 	defer cancel()
 
-	repository := repository.NewUsersRepository(db)
+	repository := repository.NewUsersRepository(u.db)
 
 	if _, err := repository.SearchByID(ctx, id); err != nil {
 		if strings.Contains("no rows in result set", err.Error()) {
@@ -196,17 +170,10 @@ func (u *UserController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := database.Connect()
-	if err != nil {
-		response.Err(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
-
 	ctx, cancel := context.WithTimeout(r.Context(), helper.ConfigTimeout.DatabaseTimeout)
 	defer cancel()
 
-	repository := repository.NewUsersRepository(db)
+	repository := repository.NewUsersRepository(u.db)
 	if err := repository.Delete(ctx, id); err != nil {
 		response.Err(w, http.StatusInternalServerError, err)
 		return
