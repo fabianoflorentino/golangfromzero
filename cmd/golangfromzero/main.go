@@ -16,8 +16,7 @@ import (
 func main() {
 
 	if err := config.LoadEnv(); err != nil {
-		slog.Error("[ERROR]: %v", "load environment variables", err.Error())
-		return
+		log.Fatalf("error load environment variables:  %v", err.Error())
 	}
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -27,6 +26,7 @@ func main() {
 	databaseConfig := database.LoadConnectionPoolConfig()
 
 	ctx := context.Background()
+
 	pool, err := database.NewConnectionPool(ctx, databaseConfig)
 	if err != nil {
 		log.Fatalf("falied to create database pool: %s", err)
