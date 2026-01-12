@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// ConnectionPoolConfig represents a database pool configuration
 type ConnectionPoolConfig struct {
 	Host                  string
 	Port                  string
@@ -85,7 +86,7 @@ func getEnvAsInt32(env string, defaultValue int32) int32 {
 	if value := os.Getenv(env); value != "" {
 		var intValue int32
 
-		fmt.Scanf(value, "%d", &intValue)
+		fmt.Sscanf(value, "%d", &intValue)
 		return intValue
 	}
 
