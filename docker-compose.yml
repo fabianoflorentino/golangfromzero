@@ -14,7 +14,7 @@ services:
     volumes:
       - ./:/golangfromzero
     ports:
-      - "${SERVER_PORT:-6000}:6000"
+      - "${SERVER_PORT:-8080}:8080"
     networks:
       - golangfromzero-network
     tty: true
