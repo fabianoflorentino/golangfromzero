@@ -40,5 +40,4 @@ func UserRouters(userController *controllers.UserController) []Route {
 			Authenticated: false,
 		},
 	}
-
 }
