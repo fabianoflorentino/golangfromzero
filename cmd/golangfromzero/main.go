@@ -4,14 +4,11 @@ import (
 	"context"
 	"log"
 	"log/slog"
-	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/fabianoflorentino/golangfromzero/config"
 	"github.com/fabianoflorentino/golangfromzero/database"
+	"github.com/fabianoflorentino/golangfromzero/internal/server"
 	"github.com/fabianoflorentino/golangfromzero/src/helper"
 	"github.com/fabianoflorentino/golangfromzero/src/router"
 )
@@ -40,28 +37,8 @@ func main() {
 
 	r := router.NewRouter(cfg, pool)
 
-	srv := &http.Server{
-		Addr:         ":8080",
-		Handler:      r,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  120 * time.Second,
-	}
-
-	go func() {
-		slog.Info("server starting", "address", srv.Addr)
-
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("server failed to start: %v", err)
-		}
-	}()
-
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-
-	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("sever forced to shutdown: %s", err)
+	if err := server.Start(ctx, r); err != nil {
+		log.Fatalf("failed to start http server: %s", err)
 	}
 
 	pool.Close()
