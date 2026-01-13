@@ -39,6 +39,7 @@ func (u *User) Validate(register string) error {
 	return nil
 }
 
+// isNameValid trim spaces from string input and validate if the user name isn't blank
 func (u *User) isNameValid() error {
 	n := strings.TrimSpace(u.Name)
 
@@ -49,6 +50,8 @@ func (u *User) isNameValid() error {
 	return nil
 }
 
+// isEmailValid trim spaces from string input and validate if the user email isn't blank
+// and parses a single RFC 5322 address
 func (u *User) isEmailValid() error {
 	e := strings.TrimSpace(u.Email)
 
@@ -63,9 +66,11 @@ func (u *User) isEmailValid() error {
 	return nil
 }
 
+// hashPasswd trim spaces from string input and create a hash from it when registry is new
 func (u *User) hashPasswd(register string) error {
 	if register == "new" {
 		p := strings.TrimSpace(u.Password)
+
 		hashedPasswd, err := helper.DoPasswdHash(p)
 		if err != nil {
 			return err
