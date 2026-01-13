@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fabianoflorentino/golangfromzero/src/helper"
 	"github.com/google/uuid"
 )
 
@@ -19,13 +20,11 @@ type User struct {
 
 // Validate check if any field is blank, and with all leading and trailing white space removed
 func (u *User) Validate(register string) error {
-	u.trimSpace()
-
-	if err := u.isBlank(); err != nil {
+	if err := u.isNameValid(); err != nil {
 		return err
 	}
 
-	if err := u.isValidEmail(u.Email); err != nil {
+	if err := u.isEmailValid(); err != nil {
 		return err
 	}
 
@@ -33,25 +32,49 @@ func (u *User) Validate(register string) error {
 		return ErrPasswordBlank
 	}
 
+	if err := u.hashPasswd(u.Password); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (u *User) isBlank() error {
-	if u.Name == "" {
+func (u *User) isNameValid() error {
+	n := strings.TrimSpace(u.Name)
+
+	if n == "" {
 		return ErrNameBlank
 	}
 
-	if u.Email == "" {
+	return nil
+}
+
+func (u *User) isEmailValid() error {
+	e := strings.TrimSpace(u.Email)
+
+	if e == "" {
 		return ErrEmailBlank
+	}
+
+	if _, err := mail.ParseAddress(u.Email); err != nil {
+		return ErrInvalidEmailFormat
 	}
 
 	return nil
 }
 
-// trimSpace remove blanks spaces before and after the string.
-func (u *User) trimSpace() {
-	strings.TrimSpace(u.Name)
-	strings.TrimSpace(u.Email)
+func (u *User) hashPasswd(register string) error {
+	if register == "new" {
+		p := strings.TrimSpace(u.Password)
+		hashedPasswd, err := helper.DoPasswdHash(p)
+		if err != nil {
+			return err
+		}
+
+		u.Password = string(hashedPasswd)
+	}
+
+	return nil
 }
 
 // isNewRegister validate if registry is new.
@@ -61,13 +84,4 @@ func (u *User) isNewRegister(register string) bool {
 	}
 
 	return false
-}
-
-// isValidEmail parses a single RFC 5322 address using mail.ParseAddress
-func (u *User) isValidEmail(email string) error {
-	if _, err := mail.ParseAddress(email); err != nil {
-		return ErrInvalidEmailFormat
-	}
-
-	return nil
 }
