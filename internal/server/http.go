@@ -10,16 +10,23 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/fabianoflorentino/golangfromzero/src/helper"
 	"github.com/gorilla/mux"
+)
+
+const (
+	readTimeout  = 10 * time.Second
+	writeTimeout = 10 * time.Second
+	idleTimeout  = 120 * time.Second
 )
 
 func Start(ctx context.Context, router *mux.Router) error {
 	srv := &http.Server{
-		Addr:         ":8080",
+		Addr:         ":" + helper.GetEnvOrDefault("SERVER_PORT", "8080"),
 		Handler:      router,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  120 * time.Second,
+		ReadTimeout:  readTimeout,
+		WriteTimeout: writeTimeout,
+		IdleTimeout:  idleTimeout,
 	}
 
 	go func() {
