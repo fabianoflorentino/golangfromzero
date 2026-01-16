@@ -16,11 +16,13 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// UserController represents a user controller that receveis a configuration and database connections
 type UserController struct {
 	cfg helper.Config
 	db  *pgxpool.Pool
 }
 
+// NewUserController initialize a new controller configuration and database connection
 func NewUserController(cfg helper.Config, db *pgxpool.Pool) *UserController {
 	return &UserController{cfg: cfg, db: db}
 }
@@ -28,12 +30,14 @@ func NewUserController(cfg helper.Config, db *pgxpool.Pool) *UserController {
 // Create handles the creation of a new user
 func (u *UserController) Create(w http.ResponseWriter, r *http.Request) {
 	requestBody, err := io.ReadAll(r.Body)
+
 	if err != nil {
 		response.Err(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 
 	var user models.User
+
 	if err := json.Unmarshal(requestBody, &user); err != nil {
 		response.Err(w, http.StatusBadRequest, err)
 		return
