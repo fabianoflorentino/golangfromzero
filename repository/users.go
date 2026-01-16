@@ -35,6 +35,7 @@ func (r UserRepository) Create(ctx context.Context, user models.User) (uuid.UUID
 	return id, nil
 }
 
+// SearchByName search a user using a string to filter and find a user by name.
 func (r UserRepository) SearchByName(ctx context.Context, name string) ([]models.User, error) {
 	query := `SELECT id, name, email, created_at from users WHERE name LIKE $1`
 
@@ -61,6 +62,7 @@ func (r UserRepository) SearchByName(ctx context.Context, name string) ([]models
 	return users, nil
 }
 
+// SearchByID search a user using a id (UUID) to filter and find a user by ID.
 func (r UserRepository) SearchByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	query := `SELECT id, name, email, created_at FROM users WHERE id = $1`
 
@@ -73,6 +75,7 @@ func (r UserRepository) SearchByID(ctx context.Context, id uuid.UUID) (*models.U
 	return &user, nil
 }
 
+// Update update's user information; can be update name and email
 func (r UserRepository) Update(ctx context.Context, id uuid.UUID, user models.User) error {
 	query := `UPDATE users SET name = $1, email = $2 WHERE id = $3`
 
@@ -83,6 +86,7 @@ func (r UserRepository) Update(ctx context.Context, id uuid.UUID, user models.Us
 	return nil
 }
 
+// Delete delete's user from database.
 func (r UserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	query := `DELETE FROM users WHERE id = $1`
 
