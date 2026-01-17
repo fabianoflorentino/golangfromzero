@@ -6,16 +6,16 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/fabianoflorentino/golangfromzero/config"
 	"github.com/fabianoflorentino/golangfromzero/database"
 	"github.com/fabianoflorentino/golangfromzero/internal/server"
 	"github.com/fabianoflorentino/golangfromzero/src/helper"
 	"github.com/fabianoflorentino/golangfromzero/src/router"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 
-	if err := config.LoadEnv(); err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Fatalf("error load environment variables:  %v", err.Error())
 	}
 
