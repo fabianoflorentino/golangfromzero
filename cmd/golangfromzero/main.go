@@ -8,7 +8,6 @@ import (
 
 	"github.com/fabianoflorentino/golangfromzero/database"
 	"github.com/fabianoflorentino/golangfromzero/internal/server"
-	"github.com/fabianoflorentino/golangfromzero/src/helper"
 	"github.com/fabianoflorentino/golangfromzero/src/router"
 	"github.com/joho/godotenv"
 )
@@ -22,7 +21,6 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
-	cfg := helper.ConfigTimeout
 	databaseConfig := database.LoadConnectionPoolConfig()
 
 	ctx := context.Background()
@@ -35,7 +33,7 @@ func main() {
 
 	slog.Info("database connection pool initialized successfully")
 
-	r := router.NewRouter(cfg, pool)
+	r := router.NewRouter(pool)
 
 	if err := server.Start(ctx, r); err != nil {
 		log.Fatalf("failed to start http server: %s", err)

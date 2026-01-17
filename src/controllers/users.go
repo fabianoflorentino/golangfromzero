@@ -6,9 +6,9 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/fabianoflorentino/golangfromzero/repository"
-	"github.com/fabianoflorentino/golangfromzero/src/helper"
 	"github.com/fabianoflorentino/golangfromzero/src/models"
 	"github.com/fabianoflorentino/golangfromzero/src/response"
 	"github.com/google/uuid"
@@ -16,15 +16,22 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type TimeoutConfig struct {
+	DatabaseTimeout time.Duration
+}
+
+var DefaultTimout = TimeoutConfig{
+	DatabaseTimeout: 5 * time.Second,
+}
+
 // UserController represents a user controller that receveis a configuration and database connections
 type UserController struct {
-	cfg helper.Config
-	db  *pgxpool.Pool
+	db *pgxpool.Pool
 }
 
 // NewUserController initialize a new controller configuration and database connection
-func NewUserController(cfg helper.Config, db *pgxpool.Pool) *UserController {
-	return &UserController{cfg: cfg, db: db}
+func NewUserController(db *pgxpool.Pool) *UserController {
+	return &UserController{db: db}
 }
 
 // Create handles the creation of a new user
@@ -48,7 +55,7 @@ func (u *UserController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), u.cfg.DatabaseTimeout)
+	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
 	defer cancel()
 
 	repository := repository.NewUsersRepository(u.db)
@@ -71,7 +78,7 @@ func (u *UserController) Create(w http.ResponseWriter, r *http.Request) {
 func (u *UserController) SearchByName(w http.ResponseWriter, r *http.Request) {
 	nameToSearch := strings.ToLower(r.URL.Query().Get("name"))
 
-	ctx, cancel := context.WithTimeout(r.Context(), helper.ConfigTimeout.DatabaseTimeout)
+	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
 	defer cancel()
 
 	repository := repository.NewUsersRepository(u.db)
@@ -99,7 +106,7 @@ func (u *UserController) SearchByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), helper.ConfigTimeout.DatabaseTimeout)
+	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
 	defer cancel()
 
 	repository := repository.NewUsersRepository(u.db)
@@ -144,7 +151,7 @@ func (u *UserController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), helper.ConfigTimeout.DatabaseTimeout)
+	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
 	defer cancel()
 
 	repository := repository.NewUsersRepository(u.db)
@@ -174,7 +181,7 @@ func (u *UserController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), helper.ConfigTimeout.DatabaseTimeout)
+	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
 	defer cancel()
 
 	repository := repository.NewUsersRepository(u.db)
