@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fabianoflorentino/golangfromzero/internal/models"
+	"github.com/fabianoflorentino/golangfromzero/internal/response"
 	"github.com/fabianoflorentino/golangfromzero/repository"
-	"github.com/fabianoflorentino/golangfromzero/src/models"
-	"github.com/fabianoflorentino/golangfromzero/src/response"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"

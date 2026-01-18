@@ -1,8 +1,8 @@
 package router
 
 import (
-	"github.com/fabianoflorentino/golangfromzero/src/controllers"
-	"github.com/fabianoflorentino/golangfromzero/src/routes"
+	"github.com/fabianoflorentino/golangfromzero/internal/controllers"
+	"github.com/fabianoflorentino/golangfromzero/internal/routes"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

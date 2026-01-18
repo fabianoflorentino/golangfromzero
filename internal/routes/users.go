@@ -3,7 +3,7 @@ package routes
 import (
 	"net/http"
 
-	"github.com/fabianoflorentino/golangfromzero/src/controllers"
+	"github.com/fabianoflorentino/golangfromzero/internal/controllers"
 )
 
 func UserRouters(userController *controllers.UserController) []Route {

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fabianoflorentino/golangfromzero/src/helper"
+	"github.com/fabianoflorentino/golangfromzero/internal/helper"
 	"github.com/google/uuid"
 )
 

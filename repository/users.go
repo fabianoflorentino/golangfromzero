@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fabianoflorentino/golangfromzero/src/models"
+	"github.com/fabianoflorentino/golangfromzero/internal/models"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

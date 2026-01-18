@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"github.com/fabianoflorentino/golangfromzero/database"
+	"github.com/fabianoflorentino/golangfromzero/internal/router"
 	"github.com/fabianoflorentino/golangfromzero/internal/server"
-	"github.com/fabianoflorentino/golangfromzero/src/router"
 	"github.com/joho/godotenv"
 )
 
