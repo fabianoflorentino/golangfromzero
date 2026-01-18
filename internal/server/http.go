@@ -10,7 +10,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/fabianoflorentino/golangfromzero/src/helper"
 	"github.com/gorilla/mux"
 )
 
@@ -22,7 +21,7 @@ const (
 
 func Start(ctx context.Context, router *mux.Router) error {
 	srv := &http.Server{
-		Addr:         ":" + helper.GetEnvOrDefault("SERVER_PORT", "8080"),
+		Addr:         ":8080",
 		Handler:      router,
 		ReadTimeout:  readTimeout,
 		WriteTimeout: writeTimeout,
