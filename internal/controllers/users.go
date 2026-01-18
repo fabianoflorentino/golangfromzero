@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -26,16 +27,22 @@ var DefaultTimout = TimeoutConfig{
 
 // UserController represents a user controller that receveis a configuration and database connections
 type UserController struct {
-	db *pgxpool.Pool
+	db     *pgxpool.Pool
+	repo   repository.UserRepository
+	logger *slog.Logger
 }
 
 // NewUserController initialize a new controller configuration and database connection
-func NewUserController(db *pgxpool.Pool) *UserController {
-	return &UserController{db: db}
+func NewUserController(db *pgxpool.Pool, repo repository.UserRepository, logger *slog.Logger) *UserController {
+	return &UserController{
+		db:     db,
+		repo:   repo,
+		logger: logger,
+	}
 }
 
 // Create handles the creation of a new user
-func (u *UserController) Create(w http.ResponseWriter, r *http.Request) {
+func (user *UserController) Create(w http.ResponseWriter, r *http.Request) {
 	requestBody, err := io.ReadAll(r.Body)
 
 	if err != nil {
@@ -43,14 +50,14 @@ func (u *UserController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user models.User
+	var u models.User
 
 	if err := json.Unmarshal(requestBody, &user); err != nil {
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
 
-	if err := user.Validate("new"); err != nil {
+	if err := u.Validate("new"); err != nil {
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
@@ -58,8 +65,7 @@ func (u *UserController) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
 	defer cancel()
 
-	repository := repository.NewUsersRepository(u.db)
-	user.ID, err = repository.Create(ctx, user)
+	u.ID, err = user.repo.Create(ctx, u)
 	if err != nil {
 
 		if strings.Contains(err.Error(), "email already used") {
@@ -75,29 +81,51 @@ func (u *UserController) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 // SearchByName retrieves all users with contains a search name
-func (u *UserController) SearchByName(w http.ResponseWriter, r *http.Request) {
-	nameToSearch := strings.ToLower(r.URL.Query().Get("name"))
-
+func (user *UserController) SearchByName(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
 	defer cancel()
 
-	repository := repository.NewUsersRepository(u.db)
-	users, err := repository.SearchByName(ctx, nameToSearch)
+	nameToSearch := strings.ToLower(r.URL.Query().Get("name"))
+
+	user.logger.InfoContext(ctx, "search users request started",
+		"method", r.Method,
+		"path", r.URL.Path,
+		"has_name_filter", nameToSearch != "",
+	)
+
+	users, err := user.repo.SearchByName(ctx, nameToSearch)
 	if err != nil {
+		user.logger.ErrorContext(ctx, "failed to search users",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"error", err,
+		)
+
 		response.Err(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	if users == nil {
+	if len(users) == 0 {
+		user.logger.InfoContext(ctx, "no users found",
+			"method", r.Method,
+			"path", r.URL.Path,
+		)
+
 		response.JSON(w, http.StatusOK, "there no users found")
 		return
 	}
+
+	user.logger.InfoContext(ctx, "users found",
+		"method", r.Method,
+		"path", r.URL.Path,
+		"count", len(users),
+	)
 
 	response.JSON(w, http.StatusOK, users)
 }
 
 // SearchByID retrieves a user by their ID
-func (u *UserController) SearchByID(w http.ResponseWriter, r *http.Request) {
+func (user *UserController) SearchByID(w http.ResponseWriter, r *http.Request) {
 	ui := mux.Vars(r)
 
 	id, err := uuid.Parse(ui["userID"])
@@ -109,8 +137,7 @@ func (u *UserController) SearchByID(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
 	defer cancel()
 
-	repository := repository.NewUsersRepository(u.db)
-	userByID, err := repository.SearchByID(ctx, id)
+	userByID, err := user.repo.SearchByID(ctx, id)
 	if err != nil {
 		if strings.Contains("no rows in result set", err.Error()) {
 			response.JSON(w, http.StatusOK, "there no users found")
@@ -125,7 +152,7 @@ func (u *UserController) SearchByID(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update modifies an existing user
-func (u *UserController) Update(w http.ResponseWriter, r *http.Request) {
+func (user *UserController) Update(w http.ResponseWriter, r *http.Request) {
 	ui := mux.Vars(r)
 
 	id, err := uuid.Parse(ui["userID"])
@@ -140,13 +167,13 @@ func (u *UserController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user models.User
+	var u models.User
 	if err := json.Unmarshal(requestBody, &user); err != nil {
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
 
-	if err := user.Validate("update"); err != nil {
+	if err := u.Validate("update"); err != nil {
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
@@ -154,16 +181,14 @@ func (u *UserController) Update(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
 	defer cancel()
 
-	repository := repository.NewUsersRepository(u.db)
-
-	if _, err := repository.SearchByID(ctx, id); err != nil {
+	if _, err := user.repo.SearchByID(ctx, id); err != nil {
 		if strings.Contains("no rows in result set", err.Error()) {
 			response.JSON(w, http.StatusNotFound, "there no users found")
 			return
 		}
 	}
 
-	if err = repository.Update(ctx, id, user); err != nil {
+	if err = user.repo.Update(ctx, id, u); err != nil {
 		response.Err(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -172,7 +197,7 @@ func (u *UserController) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 // Delete removes a user
-func (u *UserController) Delete(w http.ResponseWriter, r *http.Request) {
+func (user *UserController) Delete(w http.ResponseWriter, r *http.Request) {
 	ui := mux.Vars(r)
 
 	id, err := uuid.Parse(ui["userID"])
@@ -184,8 +209,7 @@ func (u *UserController) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
 	defer cancel()
 
-	repository := repository.NewUsersRepository(u.db)
-	if err := repository.Delete(ctx, id); err != nil {
+	if err := user.repo.Delete(ctx, id); err != nil {
 		response.Err(w, http.StatusInternalServerError, err)
 		return
 	}
