@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/fabianoflorentino/golangfromzero/internal/models"
@@ -12,11 +13,8 @@ import (
 )
 
 type UserRepository struct {
-	db *pgxpool.Pool
-}
-
-func NewUsersRepository(db *pgxpool.Pool) *UserRepository {
-	return &UserRepository{db}
+	db     *pgxpool.Pool
+	logger *slog.Logger
 }
 
 func (r UserRepository) Create(ctx context.Context, user models.User) (uuid.UUID, error) {
@@ -37,7 +35,7 @@ func (r UserRepository) Create(ctx context.Context, user models.User) (uuid.UUID
 
 // SearchByName search a user using a string to filter and find a user by name.
 func (r UserRepository) SearchByName(ctx context.Context, name string) ([]models.User, error) {
-	query := `SELECT id, name, email, created_at from users WHERE name LIKE $1`
+	const query = `SELECT id, name, email, created_at from users WHERE name LIKE $1`
 
 	var users []models.User
 
@@ -45,6 +43,12 @@ func (r UserRepository) SearchByName(ctx context.Context, name string) ([]models
 
 	rows, err := r.db.Query(ctx, query, name)
 	if err != nil {
+		r.logger.ErrorContext(ctx, "query users by name failed",
+			"operation",
+			"users.search_by_name",
+			"error", err,
+		)
+
 		return nil, err
 	}
 	defer rows.Close()
@@ -53,10 +57,26 @@ func (r UserRepository) SearchByName(ctx context.Context, name string) ([]models
 		var user models.User
 
 		if err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt); err != nil {
+			r.logger.ErrorContext(ctx, "scan user row failed",
+				"operation",
+				"user.search_by_name",
+				"error", err,
+			)
+
 			return nil, err
 		}
 
 		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		r.logger.ErrorContext(ctx, "row iteration failed",
+			"operation",
+			"rows.Err()",
+			"error", err,
+		)
+
+		return nil, err
 	}
 
 	return users, nil
