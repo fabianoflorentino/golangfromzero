@@ -218,7 +218,7 @@ if len(nameToSearch) < 2 {
 
 **Required configurations:**
 
-```
+```shell
 # Server
 SERVER_PORT=8080
 SERVER_HOST=0.0.0.0
@@ -258,7 +258,7 @@ RATE_LIMIT_WINDOW=1m
 
 **Security headers:**
 
-```
+```shell
 X-Frame-Options: DENY
 X-Content-Type-Options: nosniff
 X-XSS-Protection: 1; mode=block
@@ -284,7 +284,7 @@ Strict-Transport-Security: max-age=31536000
 
 **Structure:**
 
-```
+```shell
 src/
   controllers/
     user_controller_test.go
