@@ -28,12 +28,12 @@ var DefaultTimout = TimeoutConfig{
 // UserController represents a user controller that receveis a configuration and database connections
 type UserController struct {
 	db     *pgxpool.Pool
-	repo   repository.UserRepository
+	repo   *repository.UserRepository
 	logger *slog.Logger
 }
 
 // NewUserController initialize a new controller configuration and database connection
-func NewUserController(db *pgxpool.Pool, repo repository.UserRepository, logger *slog.Logger) *UserController {
+func NewUserController(db *pgxpool.Pool, repo *repository.UserRepository, logger *slog.Logger) *UserController {
 	return &UserController{
 		db:     db,
 		repo:   repo,
@@ -52,7 +52,7 @@ func (user *UserController) Create(w http.ResponseWriter, r *http.Request) {
 
 	var u models.User
 
-	if err := json.Unmarshal(requestBody, &user); err != nil {
+	if err := json.Unmarshal(requestBody, &u); err != nil {
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
@@ -168,7 +168,7 @@ func (user *UserController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var u models.User
-	if err := json.Unmarshal(requestBody, &user); err != nil {
+	if err := json.Unmarshal(requestBody, &u); err != nil {
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
