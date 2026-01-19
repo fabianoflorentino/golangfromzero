@@ -43,9 +43,23 @@ func NewUserController(db *pgxpool.Pool, repo *repository.UserRepository, logger
 
 // Create handles the creation of a new user
 func (user *UserController) Create(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
+	defer cancel()
+
 	requestBody, err := io.ReadAll(r.Body)
 
+	user.logger.InfoContext(ctx, "create user request started",
+		"method", r.Method,
+		"path", r.URL.Path,
+	)
+
 	if err != nil {
+		user.logger.ErrorContext(ctx, "failed to read the request body",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"error", err,
+		)
+
 		response.Err(w, http.StatusUnprocessableEntity, err)
 		return
 	}
@@ -53,29 +67,56 @@ func (user *UserController) Create(w http.ResponseWriter, r *http.Request) {
 	var u models.User
 
 	if err := json.Unmarshal(requestBody, &u); err != nil {
+		user.logger.ErrorContext(ctx, "failed to unmarshal the request body",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"error", err,
+		)
+
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := u.Validate("new"); err != nil {
+		user.logger.ErrorContext(ctx, "failed to validate the user data",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"error", err,
+		)
+
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
-
-	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
-	defer cancel()
 
 	u.ID, err = user.repo.Create(ctx, u)
 	if err != nil {
 
 		if strings.Contains(err.Error(), "email already used") {
+			user.logger.ErrorContext(ctx, "email already used",
+				"method", r.Method,
+				"path", r.URL.Path,
+				"error", err,
+			)
+
 			response.Err(w, http.StatusBadRequest, err)
 			return
 		}
 
+		user.logger.ErrorContext(ctx, "failed to create user",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"error", err,
+		)
+
 		response.Err(w, http.StatusInternalServerError, err)
 		return
 	}
+
+	user.logger.InfoContext(ctx, "user created successfully",
+		"method", r.Method,
+		"path", r.URL.Path,
+		"user_id", u.ID,
+	)
 
 	response.JSON(w, http.StatusCreated, user)
 }
