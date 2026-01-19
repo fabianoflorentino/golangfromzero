@@ -33,7 +33,7 @@ func main() {
 
 	slog.Info("database connection pool initialized successfully")
 
-	r := router.NewRouter(pool)
+	r := router.NewRouter(pool, logger)
 
 	if err := server.Start(ctx, r); err != nil {
 		log.Fatalf("failed to start http server: %s", err)
