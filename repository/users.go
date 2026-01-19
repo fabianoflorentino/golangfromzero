@@ -17,6 +17,13 @@ type UserRepository struct {
 	logger *slog.Logger
 }
 
+func NewUserRepository(db *pgxpool.Pool, logger *slog.Logger) *UserRepository {
+	return &UserRepository{
+		db:     db,
+		logger: logger,
+	}
+}
+
 func (r UserRepository) Create(ctx context.Context, user models.User) (uuid.UUID, error) {
 	query := `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id`
 
