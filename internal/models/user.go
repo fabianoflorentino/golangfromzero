@@ -18,8 +18,15 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+type ValidationMode int
+
+const (
+	ValidationCreate ValidationMode = iota
+	ValidationUpdate
+)
+
 // Validate check if any field is blank, and with all leading and trailing white space removed
-func (u *User) Validate(register string) error {
+func (u *User) Validate(mode ValidationMode) error {
 	if err := u.isNameValid(); err != nil {
 		return err
 	}
@@ -28,7 +35,7 @@ func (u *User) Validate(register string) error {
 		return err
 	}
 
-	if u.isNewRegister(register) && u.Password == "" {
+	if u.isNewRegister(mode) && u.Password == "" {
 		return ErrPasswordBlank
 	}
 
@@ -83,8 +90,8 @@ func (u *User) hashPasswd(register string) error {
 }
 
 // isNewRegister validate if registry is new.
-func (u *User) isNewRegister(register string) bool {
-	if register == "new" {
+func (u *User) isNewRegister(mode ValidationMode) bool {
+	if mode == ValidationCreate {
 		return true
 	}
 

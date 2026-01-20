@@ -10,10 +10,10 @@ import (
 
 func TestUser_Validate(t *testing.T) {
 	tests := []struct {
-		name     string
-		user     User
-		register string
-		wantErr  error
+		name           string
+		user           User
+		validationMode ValidationMode
+		wantErr        error
 	}{
 		{
 			name: "valid new user",
@@ -22,8 +22,8 @@ func TestUser_Validate(t *testing.T) {
 				Email:    "john@example.com",
 				Password: "password123",
 			},
-			register: "new",
-			wantErr:  nil,
+			validationMode: ValidationCreate,
+			wantErr:        nil,
 		},
 		{
 			name: "valid existing user without password",
@@ -31,8 +31,8 @@ func TestUser_Validate(t *testing.T) {
 				Name:  "John Doe",
 				Email: "john@example.com",
 			},
-			register: "existing",
-			wantErr:  nil,
+			validationMode: ValidationUpdate,
+			wantErr:        nil,
 		},
 		{
 			name: "blank name",
@@ -41,8 +41,8 @@ func TestUser_Validate(t *testing.T) {
 				Email:    "john@example.com",
 				Password: "password123",
 			},
-			register: "new",
-			wantErr:  ErrNameBlank,
+			validationMode: ValidationCreate,
+			wantErr:        ErrNameBlank,
 		},
 		{
 			name: "name with only spaces",
@@ -51,8 +51,8 @@ func TestUser_Validate(t *testing.T) {
 				Email:    "john@example.com",
 				Password: "password123",
 			},
-			register: "new",
-			wantErr:  ErrNameBlank,
+			validationMode: ValidationCreate,
+			wantErr:        ErrNameBlank,
 		},
 		{
 			name: "blank email",
@@ -61,8 +61,8 @@ func TestUser_Validate(t *testing.T) {
 				Email:    "",
 				Password: "password123",
 			},
-			register: "new",
-			wantErr:  ErrEmailBlank,
+			validationMode: ValidationCreate,
+			wantErr:        ErrEmailBlank,
 		},
 		{
 			name: "email with only spaces",
@@ -71,8 +71,8 @@ func TestUser_Validate(t *testing.T) {
 				Email:    "   ",
 				Password: "password123",
 			},
-			register: "new",
-			wantErr:  ErrEmailBlank,
+			validationMode: ValidationCreate,
+			wantErr:        ErrEmailBlank,
 		},
 		{
 			name: "invalid email format",
@@ -81,8 +81,8 @@ func TestUser_Validate(t *testing.T) {
 				Email:    "invalid-email",
 				Password: "password123",
 			},
-			register: "new",
-			wantErr:  ErrInvalidEmailFormat,
+			validationMode: ValidationCreate,
+			wantErr:        ErrInvalidEmailFormat,
 		},
 		{
 			name: "blank password for new user",
@@ -90,8 +90,8 @@ func TestUser_Validate(t *testing.T) {
 				Name:  "John Doe",
 				Email: "john@example.com",
 			},
-			register: "new",
-			wantErr:  ErrPasswordBlank,
+			validationMode: ValidationCreate,
+			wantErr:        ErrPasswordBlank,
 		},
 		{
 			name: "password with spaces for new user",
@@ -100,14 +100,14 @@ func TestUser_Validate(t *testing.T) {
 				Email:    "john@example.com",
 				Password: "   ",
 			},
-			register: "new",
-			wantErr:  nil,
+			validationMode: ValidationCreate,
+			wantErr:        nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.user.Validate(tt.register)
+			err := tt.user.Validate(tt.validationMode)
 			if tt.wantErr != nil {
 				assert.ErrorIs(t, err, tt.wantErr)
 			} else {
@@ -244,41 +244,36 @@ func TestUser_isEmailValid(t *testing.T) {
 
 func TestUser_isNewRegister(t *testing.T) {
 	tests := []struct {
-		name     string
-		register string
-		want     bool
+		name           string
+		validationMode ValidationMode
+		want           bool
 	}{
 		{
-			name:     "new register",
-			register: "new",
-			want:     true,
+			name:           "new register",
+			validationMode: ValidationCreate,
+			want:           true,
 		},
 		{
-			name:     "existing register",
-			register: "existing",
-			want:     false,
+			name:           "existing register",
+			validationMode: ValidationUpdate,
+			want:           false,
 		},
 		{
-			name:     "empty string",
-			register: "",
-			want:     false,
+			name:           "invalid mode",
+			validationMode: ValidationMode(-1),
+			want:           false,
 		},
 		{
-			name:     "uppercase NEW",
-			register: "NEW",
-			want:     false,
-		},
-		{
-			name:     "update register",
-			register: "update",
-			want:     false,
+			name:           "update register",
+			validationMode: ValidationUpdate,
+			want:           false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := &User{}
-			got := u.isNewRegister(tt.register)
+			got := u.isNewRegister(tt.validationMode)
 			assert.Equal(t, tt.want, got)
 		})
 	}
