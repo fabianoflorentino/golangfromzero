@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fabianoflorentino/golangfromzero/internal/helper"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // User represents a user in the system.
@@ -32,7 +32,11 @@ func (u *User) Validate(register string) error {
 		return ErrPasswordBlank
 	}
 
-	if err := u.hashPasswd(u.Password); err != nil {
+	if err := u.hashPasswd("new"); err != nil {
+		return err
+	}
+
+	if err := u.isEmailValid(); err != nil {
 		return err
 	}
 
@@ -71,7 +75,7 @@ func (u *User) hashPasswd(register string) error {
 	if register == "new" {
 		p := strings.TrimSpace(u.Password)
 
-		hashedPasswd, err := helper.DoPasswdHash(p)
+		hashedPasswd, err := u.doPasswdHash(p)
 		if err != nil {
 			return err
 		}
@@ -89,4 +93,15 @@ func (u *User) isNewRegister(register string) bool {
 	}
 
 	return false
+}
+
+// doPasswdHash returns the bcrypt hash of the password at the given cost
+func (u *User) doPasswdHash(pwd string) ([]byte, error) {
+	return bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
+}
+
+// isPasswdValid compares a bcrypt hashed password with its possible plaintext equivalent.
+// Returns nil on success, or an error on failure.
+func (u *User) isPasswdValid(pwdHashed, pwd string) error {
+	return bcrypt.CompareHashAndPassword([]byte(pwdHashed), []byte(pwd))
 }
