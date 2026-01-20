@@ -36,10 +36,6 @@ func (u *User) Validate(register string) error {
 		return err
 	}
 
-	if err := u.isEmailValid(); err != nil {
-		return err
-	}
-
 	return nil
 }
 
