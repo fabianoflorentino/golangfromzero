@@ -118,7 +118,7 @@ func (user *UserController) Create(w http.ResponseWriter, r *http.Request) {
 		"user_id", u.ID,
 	)
 
-	response.JSON(w, http.StatusCreated, user)
+	w.WriteHeader(http.StatusCreated)
 }
 
 // SearchByName retrieves all users with contains a search name
