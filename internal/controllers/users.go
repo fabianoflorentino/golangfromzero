@@ -77,7 +77,7 @@ func (user *UserController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := u.Validate("new"); err != nil {
+	if err := u.Validate(models.ValidationCreate); err != nil {
 		user.logger.ErrorContext(ctx, "failed to validate the user data",
 			"method", r.Method,
 			"path", r.URL.Path,
@@ -214,7 +214,7 @@ func (user *UserController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := u.Validate("update"); err != nil {
+	if err := u.Validate(models.ValidationUpdate); err != nil {
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
@@ -234,7 +234,7 @@ func (user *UserController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusNoContent, "")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // Delete removes a user
@@ -255,5 +255,5 @@ func (user *UserController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusNoContent, "")
+	w.WriteHeader(http.StatusNoContent)
 }
