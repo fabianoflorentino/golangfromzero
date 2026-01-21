@@ -1,247 +1,324 @@
-# ✅ MVP Production Checklist
+# ✅ MVP Production Checklist — Project-Based Assessment
 
-> **Goal:** Put an API safely into production with the *minimum required* engineering.
+> **Context:** This checklist is derived from an **actual analysis of the current project state** (repository contents, configs, Docker, env files, code structure).
 >
-> This checklist is intentionally **small, practical, and risk‑driven**.
-> If all **MVP items** are done, the service can go to production.
+> It replaces the generic checklist and reflects **what is already implemented**, **what is partially done**, and **what is missing**.
+
+Legend:
+
+* ✅ Implemented
+* ⚠️ Partially implemented / needs adjustment
+* ❌ Not implemented
 
 ---
 
-## 🎯 Definition of “Production‑Ready (MVP)”
+## 🎯 Production Readiness Goal (MVP)
 
-An API is **production‑ready** when:
+**Target:** Safe deployment without operational risk.
 
-* It **does not crash** under normal load
-* It **shuts down safely** during deploys
-* It **does not leak internal errors** to clients
-* It is **observable enough to debug incidents**
-* It can be **monitored by infrastructure (LB / K8s)**
+Minimum bar:
 
-Anything beyond this is **iteration**, not a blocker.
+* Service stays up under normal load
+* Safe deploys and restarts
+* Errors don’t leak internals
+* Basic observability
+* Infra compatibility (Docker / health)
 
 ---
 
-## 🔴 MVP — REQUIRED BEFORE PRODUCTION
+# 🔴 MVP — REQUIRED BEFORE PRODUCTION
 
-### 1. Database Connection Pool
+## 1. Database Connection Pool
 
-**Why:** Prevents DB exhaustion and improves performance.
+**Status:** ⚠️ PARTIALLY IMPLEMENTED
 
-**Must have:**
+**Evidence:**
 
-* Single pool created at startup
-* Pool injected into handlers / repositories
-* Reasonable limits
+* `pgxpool.Pool` is already used and injected
+* Pool configuration via env exists
+
+**Missing / Improvements:**
+
+* Explicit pool sizing validation on startup
+* Connection health check on boot
 
 **Checklist:**
 
-* [ ] Pool created once on startup
-* [ ] Max connections configured
-* [ ] Min idle connections configured
-* [ ] Pool closed on shutdown
+* [x] Pool created once at startup
+* [x] Pool injected into repositories/controllers
+* [ ] Validate pool config on startup
+* [ ] Log pool stats at boot
 
 ---
 
-### 2. Graceful Shutdown
+## 2. Graceful Shutdown
 
-**Why:** Prevents broken requests and corrupted state during deploys.
+**Status:** ⚠️ PARTIALLY IMPLEMENTED
 
-**Must have:**
+**Evidence:**
 
-* SIGINT / SIGTERM handling
-* HTTP server shutdown with timeout
-* DB pool closed after requests finish
+* HTTP server abstraction exists
+* Contexts with timeout are used per request
+
+**Missing / Improvements:**
+
+* OS signal handling (SIGINT / SIGTERM)
+* `http.Server.Shutdown()` usage
+* Shutdown timeout config
 
 **Checklist:**
 
-* [ ] OS signal handling
-* [ ] `http.Server.Shutdown(ctx)`
-* [ ] Configurable shutdown timeout (10–30s)
+* [ ] Capture OS signals
+* [ ] Graceful HTTP shutdown
+* [ ] Close DB pool after shutdown
 
 ---
 
-### 3. Structured Logging
+## 3. Structured Logging
 
-**Why:** Without logs, incidents are guesswork.
+**Status:** ⚠️ PARTIALLY IMPLEMENTED
 
-**Must have:**
+**Evidence:**
 
-* Structured logs (JSON)
-* Log level control via env
-* Request context propagation
+* `log/slog` already in use
+* Logs exist in controllers
+
+**Missing / Improvements:**
+
+* Global logger initialization
+* Log level via env
+* Request correlation ID
 
 **Checklist:**
 
-* [ ] Structured logger (`slog`, `zerolog`, etc.)
-* [ ] Log request start + end
-* [ ] Log errors with context (server‑side only)
-* [ ] Log level configurable
+* [x] Structured logging
+* [ ] Central logger configuration
+* [ ] Log level via env
+* [ ] Request ID propagation
 
 ---
 
-### 4. Safe Error Handling
+## 4. Safe Error Handling
 
-**Why:** Prevents security leaks and improves client experience.
+**Status:** ⚠️ PARTIALLY IMPLEMENTED
 
-**Rules:**
+**Evidence:**
 
-* Internal errors → logs
-* Client errors → clean messages
-* Never expose stack traces
+* Central `response` package exists
+* Typed domain errors exist
+
+**Missing / Improvements:**
+
+* Consistent error → HTTP mapping
+* Avoid returning raw `err.Error()` for 500s
+* Remove string-based error checks
 
 **Checklist:**
 
-* [ ] Typed / sentinel errors
-* [ ] HTTP status mapped explicitly
-* [ ] No `err.Error()` leaked for 500s
-* [ ] No string comparison on errors
+* [x] Central response helpers
+* [x] Domain error definitions
+* [ ] Explicit HTTP error mapping
+* [ ] Internal vs client error separation
 
 ---
 
-### 5. Health & Readiness Endpoints
+## 5. Health & Readiness Endpoints
 
-**Why:** Required by load balancers and orchestrators.
+**Status:** ❌ NOT IMPLEMENTED
 
-**Endpoints:**
+**Missing:**
 
-* `/health` → liveness
-* `/ready` → readiness (DB reachable)
+* `/health` endpoint
+* `/ready` endpoint with DB check
 
 **Checklist:**
 
-* [ ] `/health` returns 200 if process is alive
-* [ ] `/ready` checks DB connectivity
-* [ ] Fast response (< 100ms)
+* [ ] `/health` (liveness)
+* [ ] `/ready` (DB connectivity)
 
 ---
 
-## 🟡 CONTEXTUAL — DEPENDS ON API TYPE
+# 🟡 CONTEXTUAL — DEPENDS ON API TYPE
 
-### 🔐 API Type Matrix
+## 🔐 API Exposure Model
 
-| Feature             | Internal API    | Public API   |
-| ------------------- | --------------- | ------------ |
-| Rate limiting       | Optional        | **Required** |
-| Auth                | Network / token | **Required** |
-| Metrics             | Recommended     | **Required** |
-| CORS                | Optional        | **Required** |
-| Detailed validation | Basic           | **Strict**   |
+**Current assessment:** Internal-first API, evolving to public.
+
+| Feature       | Internal    | Public   |
+| ------------- | ----------- | -------- |
+| Rate limiting | Optional    | Required |
+| Metrics       | Recommended | Required |
+| CORS          | Optional    | Required |
 
 ---
 
-### 6. Rate Limiting
+## 6. Rate Limiting
 
-**Why:** Protects the service from abuse.
+**Status:** ❌ NOT IMPLEMENTED
 
 **Checklist:**
 
-* [ ] Per‑IP or per‑token limits
+* [ ] Per-IP or per-token limiter
 * [ ] Configurable via env
-* [ ] HTTP 429 on limit exceeded
 
-> **Public API:** REQUIRED
-> **Internal API:** Optional
+> **Required if API becomes public**
 
 ---
 
-### 7. Basic Metrics (Minimum Observability)
+## 7. Metrics & Observability
 
-**Why:** You can’t fix what you can’t see.
+**Status:** ❌ NOT IMPLEMENTED
 
-**Minimum metrics:**
+**Missing:**
 
-* Request count
-* Request duration
-* Error count
+* Prometheus metrics
+* `/metrics` endpoint
 
 **Checklist:**
 
-* [ ] `/metrics` endpoint (Prometheus)
-* [ ] Request duration histogram
-* [ ] Error counter
-
-> **Public API:** REQUIRED
-> **Internal API:** Strongly recommended
+* [ ] Request count
+* [ ] Request duration
+* [ ] Error rate
 
 ---
 
-### 8. Input Validation
+## 8. Input Validation
 
-**Why:** Prevents bad data and unnecessary load.
+**Status:** ⚠️ PARTIALLY IMPLEMENTED
+
+**Evidence:**
+
+* Model-level validation exists
+
+**Missing / Improvements:**
+
+* Query param validation
+* Length / boundary checks
 
 **Checklist:**
 
-* [ ] Validate query params
-* [ ] Validate body fields
-* [ ] Reject malformed UUIDs
-* [ ] Return clear 400 errors
+* [x] Body validation (domain)
+* [ ] Query parameter validation
+* [ ] UUID pre-validation
 
 ---
 
-### 9. Centralized Configuration
+## 9. Centralized Configuration
 
-**Why:** Enables safe deploys and reproducibility.
+**Status:** ✅ IMPLEMENTED
+
+**Evidence:**
+
+* `.env.example` exists
+* Docker and compose use env vars
+
+**Improvements:**
+
+* Validate required envs at startup
 
 **Checklist:**
 
-* [ ] All config via environment variables
+* [x] Env-based configuration
+* [x] Example env file
 * [ ] Startup validation
-* [ ] `.env.example` documented
 
 ---
 
-### 10. Security Middleware (Baseline)
+## 10. Security Middleware (Baseline)
+
+**Status:** ❌ NOT IMPLEMENTED
+
+**Missing:**
+
+* Panic recovery
+* Timeouts
+* Request size limits
 
 **Checklist:**
 
-* [ ] Panic recovery
+* [ ] Recovery middleware
 * [ ] Request timeout
-* [ ] Request size limit
-* [ ] Basic security headers
-
-> **Public API:** REQUIRED
-> **Internal API:** Recommended
+* [ ] Max body size
 
 ---
 
-## 🟢 POST‑MVP — ITERATE AFTER GO‑LIVE
+# 🟢 POST-MVP — SAFE TO ITERATE AFTER GO-LIVE
 
-These improve quality but **must not block production**.
+## 11. Tests
 
-* [ ] Unit tests (>50%)
+**Status:** ❌ NOT IMPLEMENTED
+
+**Checklist:**
+
+* [ ] Unit tests (controllers)
+* [ ] Repository tests
 * [ ] Integration tests
-* [ ] OpenAPI / Swagger docs
-* [ ] Dockerfile (multi‑stage)
-* [ ] Database migrations
 
 ---
 
-## 🔵 ADVANCED — ONLY WHEN YOU FEEL REAL PAIN
+## 12. Docker & Containerization
 
-Do **not** implement these preemptively.
+**Status:** ⚠️ PARTIALLY IMPLEMENTED
+
+**Evidence:**
+
+* Dockerfile exists
+* docker-compose exists
+
+**Improvements:**
+
+* Multi-stage build
+* Smaller runtime image
+
+**Checklist:**
+
+* [x] Dockerfile
+* [ ] Multi-stage optimization
+
+---
+
+## 13. Database Migrations
+
+**Status:** ❌ NOT IMPLEMENTED
+
+**Checklist:**
+
+* [ ] Migration tool
+* [ ] Versioned schema
+
+---
+
+# 🔵 ADVANCED — DO NOT BLOCK PRODUCTION
+
+**Status:** ❌ NOT IMPLEMENTED (by design)
 
 * [ ] Circuit breaker
-* [ ] Automatic retries
+* [ ] Retries
 * [ ] Distributed tracing
-* [ ] 90%+ test coverage
-* [ ] Complex CI/CD pipelines
-
-> Rule: **Add only when a real incident justifies it.**
+* [ ] Advanced CI/CD
 
 ---
 
-## 🧠 SRE Rule of Thumb
+# 🧠 SRE Assessment Summary
 
-> **Production readiness is about risk, not perfection.**
+**Current readiness:** 🟨 ~55–60%
 
-If you have:
+**Blocking for production:**
 
-* Pooling
-* Shutdown
-* Logs
-* Health
-* Error boundaries
+1. Health endpoints
+2. Graceful shutdown
+3. Error sanitization
 
-➡️ You are **ready to ship**.
+**Once fixed:**
+➡️ **Safe MVP production deployment**
 
 ---
+
+## ✅ Immediate Next Actions (Highest ROI)
+
+1. Add `/health` and `/ready`
+2. Implement graceful shutdown
+3. Centralize error → HTTP mapping
+4. Add basic request metrics
+
+> Everything else can iterate safely after go‑live 🚀
