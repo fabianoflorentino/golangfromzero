@@ -1,477 +1,247 @@
-# Production-Ready Checklist
+# ✅ MVP Production Checklist
 
-This document lists all the improvements needed to make the API production-ready.
+> **Goal:** Put an API safely into production with the *minimum required* engineering.
+>
+> This checklist is intentionally **small, practical, and risk‑driven**.
+> If all **MVP items** are done, the service can go to production.
 
-## 🔴 CRITICAL - Must be done BEFORE production
+---
+
+## 🎯 Definition of “Production‑Ready (MVP)”
+
+An API is **production‑ready** when:
+
+* It **does not crash** under normal load
+* It **shuts down safely** during deploys
+* It **does not leak internal errors** to clients
+* It is **observable enough to debug incidents**
+* It can be **monitored by infrastructure (LB / K8s)**
+
+Anything beyond this is **iteration**, not a blocker.
+
+---
+
+## 🔴 MVP — REQUIRED BEFORE PRODUCTION
 
 ### 1. Database Connection Pool
 
-**Status:** ❌ Not implemented  
-**Priority:** CRITICAL
+**Why:** Prevents DB exhaustion and improves performance.
 
-**Current problem:**
+**Must have:**
 
-```go
-// ❌ Creating new connection on every request
-db, err := database.Connect()
-defer db.Close()
-```
+* Single pool created at startup
+* Pool injected into handlers / repositories
+* Reasonable limits
 
-**Solution:**
+**Checklist:**
 
-- [ ] Create connection pool once during initialization
-- [ ] Inject pool into controllers
-- [ ] Configure max connections, min connections, max lifetime
-- [ ] Implement pool health check
-
-**Example:**
-
-```go
-type UserController struct {
-    cfg helper.Config
-    db  *pgxpool.Pool // Injected pool
-}
-```
+* [ ] Pool created once on startup
+* [ ] Max connections configured
+* [ ] Min idle connections configured
+* [ ] Pool closed on shutdown
 
 ---
 
 ### 2. Graceful Shutdown
 
-**Status:** ❌ Not implemented  
-**Priority:** CRITICAL
+**Why:** Prevents broken requests and corrupted state during deploys.
 
-**What to do:**
+**Must have:**
 
-- [ ] Capture SIGINT/SIGTERM signals
-- [ ] Wait for in-flight requests to finish
-- [ ] Close database connections
-- [ ] Configurable shutdown timeout (e.g., 30s)
+* SIGINT / SIGTERM handling
+* HTTP server shutdown with timeout
+* DB pool closed after requests finish
 
-**File:** `main.go`
+**Checklist:**
 
-```go
-// Implement signal handling and srv.Shutdown()
-quit := make(chan os.Signal, 1)
-signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-<-quit
-```
+* [ ] OS signal handling
+* [ ] `http.Server.Shutdown(ctx)`
+* [ ] Configurable shutdown timeout (10–30s)
 
 ---
 
 ### 3. Structured Logging
 
-**Status:** ❌ Not implemented  
-**Priority:** CRITICAL
+**Why:** Without logs, incidents are guesswork.
 
-**What to do:**
+**Must have:**
 
-- [ ] Replace standard `log` with `log/slog` or `zerolog`
-- [ ] Add context to all logs
-- [ ] Log request start/end
-- [ ] Log errors with stack trace (server-side only)
-- [ ] Configurable log levels (DEBUG, INFO, WARN, ERROR)
+* Structured logs (JSON)
+* Log level control via env
+* Request context propagation
 
-**Where to add:**
+**Checklist:**
 
-- All controllers
-- Database operations
-- Application startup/shutdown
+* [ ] Structured logger (`slog`, `zerolog`, etc.)
+* [ ] Log request start + end
+* [ ] Log errors with context (server‑side only)
+* [ ] Log level configurable
 
 ---
 
-### 4. Proper Error Handling
+### 4. Safe Error Handling
 
-**Status:** ⚠️ Partially implemented  
-**Priority:** CRITICAL
+**Why:** Prevents security leaks and improves client experience.
 
-**Current problems:**
+**Rules:**
 
-```go
-// ❌ Exposes internal details
-response.Err(w, http.StatusInternalServerError, err)
+* Internal errors → logs
+* Client errors → clean messages
+* Never expose stack traces
 
-// ❌ Inverted parameters (BUG!)
-strings.Contains("no rows in result set", err.Error())
-```
+**Checklist:**
 
-**What to do:**
-
-- [ ] Create custom error types
-- [ ] Don't expose stack traces or internal messages to clients
-- [ ] Detailed server logs, generic client messages
-- [ ] Fix string verification bugs
-- [ ] Implement error wrapping for context
+* [ ] Typed / sentinel errors
+* [ ] HTTP status mapped explicitly
+* [ ] No `err.Error()` leaked for 500s
+* [ ] No string comparison on errors
 
 ---
 
-### 5. Health Check Endpoint
+### 5. Health & Readiness Endpoints
 
-**Status:** ❌ Not implemented  
-**Priority:** CRITICAL
+**Why:** Required by load balancers and orchestrators.
 
-**What to do:**
+**Endpoints:**
 
-- [ ] Create `/health` or `/healthz` endpoint
-- [ ] Check database connection
-- [ ] Return 200 status if everything OK, 503 if something fails
-- [ ] Add `/ready` endpoint for readiness probe
+* `/health` → liveness
+* `/ready` → readiness (DB reachable)
 
-**Example:**
+**Checklist:**
 
-```go
-GET /health
-{
-  "status": "healthy",
-  "database": "ok",
-  "timestamp": "2026-01-09T10:30:00Z"
-}
-```
+* [ ] `/health` returns 200 if process is alive
+* [ ] `/ready` checks DB connectivity
+* [ ] Fast response (< 100ms)
 
 ---
 
-## 🟡 IMPORTANT - Should be done right after critical items
+## 🟡 CONTEXTUAL — DEPENDS ON API TYPE
+
+### 🔐 API Type Matrix
+
+| Feature             | Internal API    | Public API   |
+| ------------------- | --------------- | ------------ |
+| Rate limiting       | Optional        | **Required** |
+| Auth                | Network / token | **Required** |
+| Metrics             | Recommended     | **Required** |
+| CORS                | Optional        | **Required** |
+| Detailed validation | Basic           | **Strict**   |
+
+---
 
 ### 6. Rate Limiting
 
-**Status:** ❌ Not implemented  
-**Priority:** HIGH
+**Why:** Protects the service from abuse.
 
-**What to do:**
+**Checklist:**
 
-- [ ] Implement rate limiting per IP
-- [ ] Configure limits via environment variables
-- [ ] Add rate limit headers in responses
-- [ ] Return 429 Too Many Requests when exceeded
+* [ ] Per‑IP or per‑token limits
+* [ ] Configurable via env
+* [ ] HTTP 429 on limit exceeded
 
-**Suggested libraries:**
-
-- `golang.org/x/time/rate`
-- `github.com/ulule/limiter`
+> **Public API:** REQUIRED
+> **Internal API:** Optional
 
 ---
 
-### 7. Metrics and Observability
+### 7. Basic Metrics (Minimum Observability)
 
-**Status:** ❌ Not implemented  
-**Priority:** HIGH
+**Why:** You can’t fix what you can’t see.
 
-**What to do:**
+**Minimum metrics:**
 
-- [ ] Add Prometheus metrics
-  - Request count per endpoint
-  - Request duration
-  - Error rate
-  - Database connection pool stats
-- [ ] Create `/metrics` endpoint
-- [ ] Add request ID to all requests
-- [ ] Implement distributed tracing (optional)
+* Request count
+* Request duration
+* Error count
 
-**Essential metrics:**
+**Checklist:**
 
-- `http_requests_total`
-- `http_request_duration_seconds`
-- `db_queries_total`
-- `db_connection_pool_size`
+* [ ] `/metrics` endpoint (Prometheus)
+* [ ] Request duration histogram
+* [ ] Error counter
+
+> **Public API:** REQUIRED
+> **Internal API:** Strongly recommended
 
 ---
 
 ### 8. Input Validation
 
-**Status:** ⚠️ Partially implemented  
-**Priority:** HIGH
+**Why:** Prevents bad data and unnecessary load.
 
-**What to do:**
+**Checklist:**
 
-- [ ] Validate all query parameters
-- [ ] Validate min/max string lengths
-- [ ] Sanitize inputs
-- [ ] Return clear validation messages
-- [ ] Validate UUIDs before parsing
-
-**Example:**
-
-```go
-nameToSearch := strings.TrimSpace(r.URL.Query().Get("name"))
-if nameToSearch == "" {
-    response.Err(w, http.StatusBadRequest, errors.New("name is required"))
-    return
-}
-if len(nameToSearch) < 2 {
-    response.Err(w, http.StatusBadRequest, errors.New("name too short"))
-    return
-}
-```
+* [ ] Validate query params
+* [ ] Validate body fields
+* [ ] Reject malformed UUIDs
+* [ ] Return clear 400 errors
 
 ---
 
 ### 9. Centralized Configuration
 
-**Status:** ⚠️ Partially implemented  
-**Priority:** MEDIUM
+**Why:** Enables safe deploys and reproducibility.
 
-**What to do:**
+**Checklist:**
 
-- [ ] Move all configurations to environment variables
-- [ ] Create `.env.example` file
-- [ ] Document all environment variables
-- [ ] Validate configurations on startup
-
-**Required configurations:**
-
-```shell
-# Server
-SERVER_PORT=8080
-SERVER_HOST=0.0.0.0
-SERVER_READ_TIMEOUT=10s
-SERVER_WRITE_TIMEOUT=10s
-
-# Database
-DATABASE_URL=postgres://user:pass@localhost:5432/dbname
-DATABASE_MAX_CONNECTIONS=25
-DATABASE_MIN_CONNECTIONS=5
-DATABASE_MAX_LIFETIME=5m
-DATABASE_TIMEOUT=5s
-
-# Logging
-LOG_LEVEL=info
-LOG_FORMAT=json
-
-# Security
-RATE_LIMIT_REQUESTS=100
-RATE_LIMIT_WINDOW=1m
-```
+* [ ] All config via environment variables
+* [ ] Startup validation
+* [ ] `.env.example` documented
 
 ---
 
-### 10. Security Middleware
+### 10. Security Middleware (Baseline)
 
-**Status:** ❌ Not implemented  
-**Priority:** MEDIUM
+**Checklist:**
 
-**What to do:**
+* [ ] Panic recovery
+* [ ] Request timeout
+* [ ] Request size limit
+* [ ] Basic security headers
 
-- [ ] Configure CORS properly
-- [ ] Security headers (X-Frame-Options, X-Content-Type-Options, etc)
-- [ ] Request timeout middleware
-- [ ] Panic recovery middleware
-- [ ] Request size limit
-
-**Security headers:**
-
-```shell
-X-Frame-Options: DENY
-X-Content-Type-Options: nosniff
-X-XSS-Protection: 1; mode=block
-Strict-Transport-Security: max-age=31536000
-```
+> **Public API:** REQUIRED
+> **Internal API:** Recommended
 
 ---
 
-## 🟢 DESIRABLE - Improves quality but not blocking
+## 🟢 POST‑MVP — ITERATE AFTER GO‑LIVE
 
-### 11. Tests
+These improve quality but **must not block production**.
 
-**Status:** ❌ Not implemented  
-**Priority:** MEDIUM
-
-**What to do:**
-
-- [ ] Unit tests for controllers (>80% coverage)
-- [ ] Unit tests for repositories
-- [ ] Integration tests with database
-- [ ] Load tests (benchmarks)
-- [ ] Mocks for external dependencies
-
-**Structure:**
-
-```shell
-src/
-  controllers/
-    user_controller_test.go
-  repository/
-    user_repository_test.go
-```
+* [ ] Unit tests (>50%)
+* [ ] Integration tests
+* [ ] OpenAPI / Swagger docs
+* [ ] Dockerfile (multi‑stage)
+* [ ] Database migrations
 
 ---
 
-### 12. Circuit Breaker
+## 🔵 ADVANCED — ONLY WHEN YOU FEEL REAL PAIN
 
-**Status:** ❌ Not implemented  
-**Priority:** LOW
+Do **not** implement these preemptively.
 
-**What to do:**
+* [ ] Circuit breaker
+* [ ] Automatic retries
+* [ ] Distributed tracing
+* [ ] 90%+ test coverage
+* [ ] Complex CI/CD pipelines
 
-- [ ] Implement circuit breaker for database calls
-- [ ] Configure thresholds (consecutive failures, timeout)
-- [ ] Add circuit breaker metrics
-- [ ] Implement fallback strategies
-
-**Suggested library:**
-
-- `github.com/sony/gobreaker`
+> Rule: **Add only when a real incident justifies it.**
 
 ---
 
-### 13. Retry Logic
+## 🧠 SRE Rule of Thumb
 
-**Status:** ❌ Not implemented  
-**Priority:** LOW
+> **Production readiness is about risk, not perfection.**
 
-**What to do:**
+If you have:
 
-- [ ] Implement retry for idempotent operations
-- [ ] Exponential backoff
-- [ ] Configure max retries
-- [ ] Log retry attempts
+* Pooling
+* Shutdown
+* Logs
+* Health
+* Error boundaries
 
----
-
-### 14. API Documentation
-
-**Status:** ❌ Not implemented  
-**Priority:** MEDIUM
-
-**What to do:**
-
-- [ ] Document all endpoints (OpenAPI/Swagger)
-- [ ] Add request/response examples
-- [ ] Document error codes
-- [ ] Create Postman collection
+➡️ You are **ready to ship**.
 
 ---
-
-### 15. Docker and Containerization
-
-**Status:** ❌ Not implemented  
-**Priority:** MEDIUM
-
-**What to do:**
-
-- [ ] Create multi-stage Dockerfile
-- [ ] Docker compose for development
-- [ ] Docker compose for tests
-- [ ] Optimize image size
-- [ ] Use distroless or alpine images
-
----
-
-### 16. CI/CD Pipeline
-
-**Status:** ❌ Not implemented  
-**Priority:** MEDIUM
-
-**What to do:**
-
-- [ ] GitHub Actions / GitLab CI
-- [ ] Lint (golangci-lint)
-- [ ] Automated tests
-- [ ] Docker image build
-- [ ] Automatic deployment
-- [ ] Automatic rollback on failure
-
----
-
-### 17. Database Migrations
-
-**Status:** ❌ Not implemented
-**Priority:** MEDIUM
-
-**What to do:**
-
-- [ ] Implement automatic migrations
-- [ ] Schema versioning
-- [ ] Migration rollback
-- [ ] Seeds for development
-
-**Suggested libraries:**
-
-- `github.com/golang-migrate/migrate`
-- `github.com/pressly/goose`
-
----
-
-### 18. Distributed Tracing
-
-**Status:** ❌ Not implemented  
-**Priority:** LOW
-
-**What to do:**
-
-- [ ] Implement OpenTelemetry
-- [ ] Integrate with Jaeger or Zipkin
-- [ ] Add spans to important operations
-- [ ] Propagate context between services
-
----
-
-## 📋 Summary by Priority
-
-### DO NOW (before production)
-
-1. ✅ Database connection pool
-2. ✅ Graceful shutdown
-3. ✅ Structured logging
-4. ✅ Proper error handling
-5. ✅ Health check endpoint
-
-### DO NEXT (first week)
-
-6. Rate limiting
-7. Basic metrics
-8. Input validation
-9. Centralized configuration
-10. Security middleware
-
-### NICE TO HAVE (next sprints)
-
-11. Tests (unit and integration)
-12. Circuit breaker
-13. API Documentation
-14. Docker and containerization
-15. CI/CD
-16. Database migrations
-
-### OPTIONAL (when you have time)
-
-17. Retry logic
-18. Distributed tracing
-
----
-
-## 🎯 Progress Goal
-
-```shell
-[░░░░░░░░░░] 0% - Current status
-[████████░░] 80% - Minimum for production
-[██████████] 100% - Production-ready complete
-```
-
-**To reach 80% (minimum for production):**
-
-- Complete all CRITICAL items (1-5)
-- Complete at least 3 IMPORTANT items (6-10)
-- Have at least 50% test coverage
-
----
-
-## 📝 How to Use This Checklist
-
-1. Copy this file to the project root
-2. Check the boxes as you implement
-3. Create issues/tasks for each item
-4. Prioritize CRITICAL items
-5. Review progress weekly
-
----
-
-## 🔗 Useful Resources
-
-- [Effective Go](https://go.dev/doc/effective_go)
-- [Go Best Practices](https://github.com/golang-standards/project-layout)
-- [12 Factor App](https://12factor.net/)
-- [Production Readiness Checklist](https://gruntwork.io/devops-checklist/)
-
----
-
-**Last updated:** 2026-01-09  
-**Version:** 1.0.0
