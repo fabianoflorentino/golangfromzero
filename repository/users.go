@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 
 	"github.com/fabianoflorentino/golangfromzero/internal/models"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -30,9 +30,22 @@ func (r UserRepository) Create(ctx context.Context, user models.User) (uuid.UUID
 	var id uuid.UUID
 
 	if err := r.db.QueryRow(ctx, query, user.Name, user.Email, user.Password).Scan(&id); err != nil {
-		if strings.Contains(err.Error(), "users_email_key") {
-			return uuid.Nil, errors.New("email already used")
+		if isUniqueViolation(err) {
+			r.logger.ErrorContext(ctx, ErrEmailAlreadyExist.Error(),
+				"operation",
+				"users.create",
+				"email", user.Email,
+				"error", err,
+			)
+
+			return uuid.Nil, ErrEmailAlreadyExist
 		}
+
+		r.logger.ErrorContext(ctx, "insert user failed",
+			"operation",
+			"users.create",
+			"error", err,
+		)
 
 		return uuid.Nil, err
 	}
@@ -122,4 +135,14 @@ func (r UserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func isUniqueViolation(err error) bool {
+	var pgErr *pgconn.PgError
+
+	if errors.As(err, &pgErr) {
+		return pgErr.Code == ErrPgCode
+	}
+
+	return false
 }
