@@ -7,5 +7,4 @@ var (
 	ErrEmailBlank         error = errors.New("email can not be blank")
 	ErrPasswordBlank      error = errors.New("password can not be blank")
 	ErrInvalidEmailFormat error = errors.New("invalid format")
-	ErrEmailAlreadyExist  error = errors.New("email already used")
 )
