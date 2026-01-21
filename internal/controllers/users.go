@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -90,26 +91,26 @@ func (user *UserController) Create(w http.ResponseWriter, r *http.Request) {
 
 	u.ID, err = user.repo.Create(ctx, u)
 	if err != nil {
-
-		if strings.Contains(err.Error(), "email already used") {
-			user.logger.ErrorContext(ctx, "email already used",
+		switch {
+		case errors.Is(err, repository.ErrEmailAlreadyExist):
+			user.logger.ErrorContext(ctx, repository.ErrEmailAlreadyExist.Error(),
 				"method", r.Method,
 				"path", r.URL.Path,
 				"error", err,
 			)
 
-			response.Err(w, http.StatusBadRequest, err)
+			response.Err(w, http.StatusConflict, err)
+			return
+		default:
+			user.logger.ErrorContext(ctx, "failed to create user",
+				"method", r.Method,
+				"path", r.URL.Path,
+				"error", err,
+			)
+
+			response.Err(w, http.StatusInternalServerError, err)
 			return
 		}
-
-		user.logger.ErrorContext(ctx, "failed to create user",
-			"method", r.Method,
-			"path", r.URL.Path,
-			"error", err,
-		)
-
-		response.Err(w, http.StatusInternalServerError, err)
-		return
 	}
 
 	user.logger.InfoContext(ctx, "user created successfully",
