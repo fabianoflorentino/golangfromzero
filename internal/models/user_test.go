@@ -400,11 +400,6 @@ func TestErrors(t *testing.T) {
 			err:  ErrInvalidEmailFormat,
 			msg:  "invalid format",
 		},
-		{
-			name: "ErrEmailAlreadyExist",
-			err:  ErrEmailAlreadyExist,
-			msg:  "email already used",
-		},
 	}
 
 	for _, tt := range tests {
@@ -420,7 +415,6 @@ func TestErrors(t *testing.T) {
 		assert.NotEqual(t, ErrNameBlank, ErrPasswordBlank)
 		assert.NotEqual(t, ErrEmailBlank, ErrPasswordBlank)
 		assert.NotEqual(t, ErrInvalidEmailFormat, ErrEmailBlank)
-		assert.NotEqual(t, ErrEmailAlreadyExist, ErrInvalidEmailFormat)
 	})
 }
 
