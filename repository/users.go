@@ -25,7 +25,7 @@ func NewUserRepository(db *pgxpool.Pool, logger *slog.Logger) *UserRepository {
 }
 
 func (r UserRepository) Create(ctx context.Context, user models.User) (uuid.UUID, error) {
-	query := `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id`
+	const query = `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id`
 
 	var id uuid.UUID
 
@@ -91,7 +91,7 @@ func (r UserRepository) SearchByName(ctx context.Context, name string) ([]models
 
 // SearchByID search a user using a id (UUID) to filter and find a user by ID.
 func (r UserRepository) SearchByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
-	query := `SELECT id, name, email, created_at FROM users WHERE id = $1`
+	const query = `SELECT id, name, email, created_at FROM users WHERE id = $1`
 
 	var user models.User
 
@@ -104,7 +104,7 @@ func (r UserRepository) SearchByID(ctx context.Context, id uuid.UUID) (*models.U
 
 // Update update's user information; can be update name and email
 func (r UserRepository) Update(ctx context.Context, id uuid.UUID, user models.User) error {
-	query := `UPDATE users SET name = $1, email = $2 WHERE id = $3`
+	const query = `UPDATE users SET name = $1, email = $2 WHERE id = $3`
 
 	if _, err := r.db.Exec(ctx, query, user.Name, user.Email, id); err != nil {
 		return err
@@ -115,7 +115,7 @@ func (r UserRepository) Update(ctx context.Context, id uuid.UUID, user models.Us
 
 // Delete delete's user from database.
 func (r UserRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	query := `DELETE FROM users WHERE id = $1`
+	const query = `DELETE FROM users WHERE id = $1`
 
 	if _, err := r.db.Exec(ctx, query, id); err != nil {
 		return err
