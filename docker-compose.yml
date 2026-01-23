@@ -12,7 +12,7 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ./:/golangfromzero
+      - ./:/app
     ports:
       - "${SERVER_PORT:-8080}:8080"
     networks:
