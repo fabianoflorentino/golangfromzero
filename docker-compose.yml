@@ -1,6 +1,6 @@
 ---
 services:
-  golangfromzero:
+  app:
     image: fabianoflorentino/golangfromzero:v0.0.1
     build:
       context: .
@@ -9,7 +9,7 @@ services:
     env_file:
       - ./.env
     depends_on:
-      database:
+      db:
         condition: service_healthy
     volumes:
       - ./:/golangfromzero
@@ -24,7 +24,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 3
-  database:
+  db:
     image: postgres:16-alpine3.23
     env_file:
       - ./.env

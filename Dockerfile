@@ -1,30 +1,30 @@
-FROM golang:alpine3.22 AS base
+FROM golang:alpine3.23 AS base
 
-WORKDIR /golangfromzero
+WORKDIR /app
 
 COPY . .
 
-RUN apk update -y --no-cache \
-  && apk upgrade -y --no-cache \
-  && go mod download \
-  && GOFLAGS="-trimpath" CGO_DISABLED=1 GOARCH=amd64 go build -ldflags="-s -w" -o /usr/local/bin/golangfromzero /golangfromzero/cmd/golangfromzero
+RUN go mod download \
+  && GOFLAGS="-trimpath" CGO_DISABLED=1 GOARCH=amd64 \
+  go build -ldflags="-s -w" -o /usr/local/bin/app /app/cmd/app
+
 
 FROM base AS development
 
+WORKDIR /app
+
 RUN go install github.com/air-verse/air@latest
 
-COPY --from=base /golangfromzero/config/.env.example /root/.env
-
-EXPOSE 6000
+EXPOSE 8080
 
 ENTRYPOINT [ "/go/bin/air" ]
-CMD [ "-c", "/golangfromzero/.air.toml" ]
+CMD [ "-c", "/app/.air.toml" ]
 
 
 FROM gcr.io/distroless/static:nonroot AS production
 
-COPY --from=base /usr/local/bin/golangfromzero /usr/local/bin/golangfromzero
+COPY --from=base /usr/local/bin/app /usr/local/bin/app
 
 USER nonroot:nonroot
 
-ENTRYPOINT [ "/usr/local/bin/golangfromzero" ]
+ENTRYPOINT [ "/usr/local/bin/app" ]
