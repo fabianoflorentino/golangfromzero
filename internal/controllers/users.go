@@ -168,33 +168,66 @@ func (user *UserController) SearchByName(w http.ResponseWriter, r *http.Request)
 
 // SearchByID retrieves a user by their ID
 func (user *UserController) SearchByID(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
+	defer cancel()
+
 	ui := mux.Vars(r)
+
+	user.logger.InfoContext(ctx, "search user by ID request started",
+		"method", r.Method,
+		"path", r.URL.Path,
+		"user_id", ui["userID"],
+	)
 
 	id, err := uuid.Parse(ui["userID"])
 	if err != nil {
+		user.logger.ErrorContext(ctx, "invalid user ID format",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"error", err,
+		)
+
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
-	defer cancel()
-
 	userByID, err := user.repo.SearchByID(ctx, id)
 	if err != nil {
-		if strings.Contains("no rows in result set", err.Error()) {
+		if errors.Is(err, repository.ErrNoRows) {
+			user.logger.ErrorContext(ctx, "user not found",
+				"method", r.Method,
+				"path", r.URL.Path,
+				"user_id", ui["userID"],
+			)
+
 			response.JSON(w, http.StatusOK, "there no users found")
 			return
 		}
 
+		user.logger.ErrorContext(ctx, "failed to search user by ID",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"error", err,
+		)
+
 		response.Err(w, http.StatusInternalServerError, err)
 		return
 	}
+
+	user.logger.InfoContext(ctx, "user found",
+		"method", r.Method,
+		"path", r.URL.Path,
+		"user_id", ui["userID"],
+	)
 
 	response.JSON(w, http.StatusOK, userByID)
 }
 
 // Update modifies an existing user
 func (user *UserController) Update(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
+	defer cancel()
+
 	ui := mux.Vars(r)
 
 	id, err := uuid.Parse(ui["userID"])
@@ -219,9 +252,6 @@ func (user *UserController) Update(w http.ResponseWriter, r *http.Request) {
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
-
-	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
-	defer cancel()
 
 	if _, err := user.repo.SearchByID(ctx, id); err != nil {
 		if strings.Contains("no rows in result set", err.Error()) {
