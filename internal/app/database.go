@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// NewDatabasePool initializes and returns a new database connection pool.
 func NewDatabasePool(ctx context.Context, logger *slog.Logger) (*pgxpool.Pool, error) {
 	databaseConfig, err := database.LoadConnectionPoolConfig()
 	if err != nil {

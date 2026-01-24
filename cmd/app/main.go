@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-
 	_ = godotenv.Load()
 
 	if err := app.Run(); err != nil {

@@ -8,6 +8,7 @@ import (
 	"github.com/fabianoflorentino/golangfromzero/internal/server"
 )
 
+// Run initializes and starts the application.
 func Run() error {
 	ctx := context.Background()
 	logger := NewLogger()
