@@ -3,8 +3,8 @@ package database
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -12,12 +12,13 @@ import (
 
 // ConnectionPoolConfig represents a database pool configuration
 type ConnectionPoolConfig struct {
-	Host                  string
-	Port                  string
-	User                  string
-	Password              string
-	Database              string
-	SSLmode               string
+	Host     string
+	Port     string
+	User     string
+	Password string
+	Database string
+	SSLmode  string
+
 	MaxConnections        int32
 	MinConnections        int32
 	MaxConnectionLifetime time.Duration
@@ -26,20 +27,48 @@ type ConnectionPoolConfig struct {
 }
 
 // LoadConnectionPoolConfig load the configurations from environment variables.
-func LoadConnectionPoolConfig() ConnectionPoolConfig {
-	return ConnectionPoolConfig{
-		Host:                  getEnv("DB_HOST", "localhost"),
-		Port:                  getEnv("DB_PORT", "5432"),
-		User:                  getEnv("DB_USER", "postgres"),
-		Password:              getEnv("DB_PASSWORD", "postgres"),
-		Database:              getEnv("DB_NAME", "exampledb"),
-		SSLmode:               getEnv("DB_SSLMODE", "disable"),
+func LoadConnectionPoolConfig() (ConnectionPoolConfig, error) {
+	cfg := ConnectionPoolConfig{
+		Host:     os.Getenv("DB_HOST"),
+		Port:     getEnv("DB_PORT", "5432"),
+		User:     os.Getenv("DB_USER"),
+		Password: os.Getenv("DB_PASSWORD"),
+		Database: os.Getenv("DB_NAME"),
+		SSLmode:  getEnv("DB_SSLMODE", "disable"),
+
 		MaxConnections:        getEnvAsInt32("DB_MAX_CONNECTIONS", 25),
 		MinConnections:        getEnvAsInt32("DB_MIN_CONNEXTIONS", 5),
 		MaxConnectionLifetime: getEnvAsDuration("DB_MAX_CONNECTION_LIFETIME", 5*time.Minute),
 		MaxConnectionIdletime: getEnvAsDuration("DB_MAX_CONNECTION_IDLETIME", 1*time.Minute),
 		HealthcheckPeriod:     getEnvAsDuration("DB_HEALTHCHECK_PERIOD", 1*time.Minute),
 	}
+
+	var missing []string
+
+	if cfg.Host == "" {
+		missing = append(missing, "DB_HOST")
+	}
+	if cfg.Port == "" {
+		missing = append(missing, "DB_PORT")
+	}
+	if cfg.User == "" {
+		missing = append(missing, "DB_USER")
+	}
+	if cfg.Password == "" {
+		missing = append(missing, "DB_PASSWORD")
+	}
+	if cfg.Database == "" {
+		missing = append(missing, "DB_NAME")
+	}
+	if cfg.SSLmode == "" {
+		missing = append(missing, "DB_SSLMODE")
+	}
+
+	if len(missing) > 0 {
+		return ConnectionPoolConfig{}, fmt.Errorf("missing required database env vars: %s", strings.Join(missing, ", "))
+	}
+
+	return cfg, nil
 }
 
 // NewConnectionPool creates a new database connection pool
@@ -66,8 +95,6 @@ func NewConnectionPool(ctx context.Context, cfg ConnectionPoolConfig) (*pgxpool.
 		connectionPool.Close()
 		return nil, fmt.Errorf("unable to ping database: %w", err)
 	}
-
-	log.Printf("database connection pool created successfully (max: %d, min: %d)", cfg.MaxConnections, cfg.MinConnections)
 
 	return connectionPool, nil
 }
