@@ -3,6 +3,7 @@ package webserver
 import (
 	"log/slog"
 
+	"github.com/fabianoflorentino/golangfromzero/internal/webserver/middleware"
 	"github.com/gorilla/mux"
 )
 
@@ -16,6 +17,8 @@ type Router struct {
 
 func NewRouter(handlers Handlers, log *slog.Logger) *Router {
 	r := mux.NewRouter()
+
+	r.Use(middleware.LoggingMiddleware(log))
 
 	RegisterUserRoutes(r, handlers.User)
 
