@@ -120,7 +120,16 @@ func (r UserRepository) Update(ctx context.Context, id uuid.UUID, user models.Us
 	const query = `UPDATE users SET name = $1, email = $2 WHERE id = $3`
 
 	if _, err := r.db.Exec(ctx, query, user.Name, user.Email, id); err != nil {
-		return err
+		if isUniqueViolation(err) {
+			r.logger.ErrorContext(ctx, ErrEmailAlreadyExist.Error(),
+				"operation",
+				"users.create",
+				"email", user.Email,
+				"error", err,
+			)
+
+			return ErrEmailAlreadyExist
+		}
 	}
 
 	return nil

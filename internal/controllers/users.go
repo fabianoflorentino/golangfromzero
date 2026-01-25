@@ -257,9 +257,28 @@ func (user *UserController) Update(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err = user.repo.Update(ctx, id, u); err != nil {
-		response.Err(w, http.StatusInternalServerError, err)
-		return
+	err = user.repo.Update(ctx, id, u)
+	if err != nil {
+		switch {
+		case errors.Is(err, repository.ErrEmailAlreadyExist):
+			user.logger.ErrorContext(ctx, repository.ErrEmailAlreadyExist.Error(),
+				"method", r.Method,
+				"path", r.URL.Path,
+				"error", err,
+			)
+
+			response.Err(w, http.StatusConflict, err)
+			return
+		default:
+			user.logger.ErrorContext(ctx, "failed to create user",
+				"method", r.Method,
+				"path", r.URL.Path,
+				"error", err,
+			)
+
+			response.Err(w, http.StatusInternalServerError, err)
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusNoContent)
