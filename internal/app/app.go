@@ -4,8 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/fabianoflorentino/golangfromzero/internal/router"
-	"github.com/fabianoflorentino/golangfromzero/internal/server"
+	"github.com/fabianoflorentino/golangfromzero/internal/webserver"
 )
 
 // Run initializes and starts the application.
@@ -22,9 +21,9 @@ func Run() error {
 
 	slog.InfoContext(ctx, "database connection pool initialized")
 
-	r := router.NewRouter(pool, logger)
+	c := NewContainer(pool, logger)
 
-	if err := server.Start(ctx, r); err != nil {
+	if err := webserver.Start(ctx, c.Router); err != nil {
 		slog.ErrorContext(ctx, "http server start failed", "error", err)
 		return err
 	}

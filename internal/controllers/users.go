@@ -15,7 +15,6 @@ import (
 	"github.com/fabianoflorentino/golangfromzero/repository"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type TimeoutConfig struct {
@@ -28,15 +27,13 @@ var DefaultTimout = TimeoutConfig{
 
 // UserController represents a user controller that receveis a configuration and database connections
 type UserController struct {
-	db     *pgxpool.Pool
 	repo   *repository.UserRepository
 	logger *slog.Logger
 }
 
 // NewUserController initialize a new controller configuration and database connection
-func NewUserController(db *pgxpool.Pool, repo *repository.UserRepository, logger *slog.Logger) *UserController {
+func NewUserController(repo *repository.UserRepository, logger *slog.Logger) *UserController {
 	return &UserController{
-		db:     db,
 		repo:   repo,
 		logger: logger,
 	}
