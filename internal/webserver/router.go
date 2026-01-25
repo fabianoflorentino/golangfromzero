@@ -3,7 +3,7 @@ package webserver
 import (
 	"log/slog"
 
-	"github.com/fabianoflorentino/golangfromzero/internal/webserver/middleware"
+	"github.com/fabianoflorentino/golangfromzero/internal/middleware"
 	"github.com/gorilla/mux"
 )
 
