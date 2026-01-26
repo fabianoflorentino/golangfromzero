@@ -9,3 +9,7 @@ type UserHandler interface {
 	Update(http.ResponseWriter, *http.Request)
 	Delete(http.ResponseWriter, *http.Request)
 }
+
+type HealthHandler interface {
+	Check(http.ResponseWriter, *http.Request)
+}

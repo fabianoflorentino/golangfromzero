@@ -8,7 +8,8 @@ import (
 )
 
 type Handlers struct {
-	User UserHandler
+	User   UserHandler
+	Health HealthHandler
 }
 
 type Router struct {
@@ -20,7 +21,8 @@ func NewRouter(handlers Handlers, log *slog.Logger) *Router {
 
 	r.Use(middleware.LoggingMiddleware(log))
 
-	RegisterUserRoutes(r, handlers.User)
+	RegisterRoutesUser(r, handlers.User)
+	RegisterRoutesHealth(r, handlers.Health)
 
 	return &Router{Router: r}
 }

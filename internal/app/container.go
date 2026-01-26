@@ -17,8 +17,11 @@ func NewContainer(db *pgxpool.Pool, log *slog.Logger) *Container {
 	userRepo := repository.NewUserRepository(db, log)
 	userController := controllers.NewUserController(userRepo, log)
 
+	healthController := controllers.NewHealthController(log)
+
 	handlers := webserver.Handlers{
-		User: userController,
+		User:   userController,
+		Health: healthController,
 	}
 
 	router := webserver.NewRouter(handlers, log)
