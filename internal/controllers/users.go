@@ -229,29 +229,59 @@ func (user *UserController) Update(w http.ResponseWriter, r *http.Request) {
 
 	id, err := uuid.Parse(ui["userID"])
 	if err != nil {
+		user.logger.ErrorContext(ctx, "invalid user ID format",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"error", err,
+		)
+
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
 
 	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
+		user.logger.ErrorContext(ctx, "failed to read the request body",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"error", err,
+		)
+
 		response.Err(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 
 	var u models.User
 	if err := json.Unmarshal(requestBody, &u); err != nil {
+		user.logger.ErrorContext(ctx, "failed to unmarshal the request body",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"error", err,
+		)
+
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := u.Validate(models.ValidationUpdate); err != nil {
+		user.logger.ErrorContext(ctx, "failed to validate the user data",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"error", err,
+		)
+
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
 
 	if _, err := user.repo.SearchByID(ctx, id); err != nil {
 		if strings.Contains("no rows in result set", err.Error()) {
+			user.logger.ErrorContext(ctx, "user not found",
+				"method", r.Method,
+				"path", r.URL.Path,
+				"user_id", ui["userID"],
+			)
+
 			response.JSON(w, http.StatusNotFound, "there no users found")
 			return
 		}
@@ -286,18 +316,30 @@ func (user *UserController) Update(w http.ResponseWriter, r *http.Request) {
 
 // Delete removes a user
 func (user *UserController) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
+	defer cancel()
+
 	ui := mux.Vars(r)
 
 	id, err := uuid.Parse(ui["userID"])
 	if err != nil {
+		user.logger.ErrorContext(ctx, "invalid user ID format",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"error", err,
+		)
+
 		response.Err(w, http.StatusBadRequest, err)
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), DefaultTimout.DatabaseTimeout)
-	defer cancel()
-
 	if err := user.repo.Delete(ctx, id); err != nil {
+		user.logger.ErrorContext(ctx, "failed to delete user",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"error", err,
+		)
+
 		response.Err(w, http.StatusInternalServerError, err)
 		return
 	}
