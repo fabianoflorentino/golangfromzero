@@ -23,9 +23,15 @@ func Run() error {
 
 	c := NewContainer(pool, logger)
 
-	if err := webserver.Start(ctx, c.Router); err != nil {
-		slog.ErrorContext(ctx, "http server start failed", "error", err)
-		return err
+	go func() {
+		if err := webserver.Start(ctx, c.Router); err != nil {
+			logger.ErrorContext(ctx, "http server start failed", "error", err)
+		}
+	}()
+	<-ctx.Done()
+
+	if err := c.Shutdown(ctx); err != nil {
+		c.Logger.Warn("error during application shutdown", "error", err)
 	}
 
 	slog.InfoContext(ctx, "server exited gracefully")
