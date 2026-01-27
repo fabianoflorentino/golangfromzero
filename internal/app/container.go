@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/fabianoflorentino/golangfromzero/internal/controllers"
@@ -11,22 +12,39 @@ import (
 
 type Container struct {
 	Router *webserver.Router
+	DB     *pgxpool.Pool
+	Logger *slog.Logger
 }
 
 func NewContainer(db *pgxpool.Pool, log *slog.Logger) *Container {
-	userRepo := repository.NewUserRepository(db, log)
-	userController := controllers.NewUserController(userRepo, log)
-
-	healthController := controllers.NewHealthController(log)
-
 	handlers := webserver.Handlers{
-		User:   userController,
-		Health: healthController,
+		User:   buildUserController(db, log),
+		Health: buildHealthController(log),
 	}
-
-	router := webserver.NewRouter(handlers, log)
 
 	return &Container{
-		Router: router,
+		Router: webserver.NewRouter(handlers, log),
+		DB:     db,
+		Logger: log,
 	}
+}
+
+func (c *Container) Shutdown(ctx context.Context) error {
+	c.Logger.Info("Shutting down application container")
+
+	if c.DB != nil {
+		c.Logger.Info("Closing database connection pool")
+		c.DB.Close()
+	}
+
+	return nil
+}
+
+func buildUserController(db *pgxpool.Pool, log *slog.Logger) *controllers.UserController {
+	userRepo := repository.NewUserRepository(db, log)
+	return controllers.NewUserController(userRepo, log)
+}
+
+func buildHealthController(log *slog.Logger) *controllers.HealthController {
+	return controllers.NewHealthController(log)
 }
