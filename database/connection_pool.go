@@ -37,7 +37,7 @@ func LoadConnectionPoolConfig() (ConnectionPoolConfig, error) {
 		SSLmode:  getEnv("DB_SSLMODE", "disable"),
 
 		MaxConnections:        getEnvAsInt32("DB_MAX_CONNECTIONS", 25),
-		MinConnections:        getEnvAsInt32("DB_MIN_CONNEXTIONS", 5),
+		MinConnections:        getEnvAsInt32("DB_MIN_CONNECTIONS", 5),
 		MaxConnectionLifetime: getEnvAsDuration("DB_MAX_CONNECTION_LIFETIME", 5*time.Minute),
 		MaxConnectionIdletime: getEnvAsDuration("DB_MAX_CONNECTION_IDLETIME", 1*time.Minute),
 		HealthcheckPeriod:     getEnvAsDuration("DB_HEALTHCHECK_PERIOD", 1*time.Minute),
