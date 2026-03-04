@@ -85,6 +85,7 @@ func NewConnectionPool(ctx context.Context, cfg ConnectionPoolConfig) (*pgxpool.
 	connectionPoolConfig.MinConns = cfg.MinConnections
 	connectionPoolConfig.MaxConnLifetime = cfg.MaxConnectionLifetime
 	connectionPoolConfig.MaxConnIdleTime = cfg.MaxConnectionIdletime
+	connectionPoolConfig.HealthCheckPeriod = cfg.HealthcheckPeriod
 
 	connectionPool, err := pgxpool.NewWithConfig(ctx, connectionPoolConfig)
 	if err != nil {
