@@ -1,4 +1,4 @@
-FROM golang:alpine3.23.3 AS base
+FROM golang:alpine3.23 AS base
 
 WORKDIR /app
 
@@ -13,7 +13,8 @@ FROM base AS development
 
 WORKDIR /app
 
-RUN go install github.com/air-verse/air@latest
+RUN go install github.com/air-verse/air@latest \
+  && go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.1
 
 EXPOSE 8080
 
@@ -26,5 +27,7 @@ FROM gcr.io/distroless/static:nonroot AS production
 COPY --from=base /usr/local/bin/app /usr/local/bin/app
 
 USER nonroot:nonroot
+
+EXPOSE 8080
 
 ENTRYPOINT [ "/usr/local/bin/app" ]
