@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"log/slog"
 
 	"github.com/fabianoflorentino/golangfromzero/database"
@@ -13,12 +13,12 @@ import (
 func NewDatabasePool(ctx context.Context, logger *slog.Logger) (*pgxpool.Pool, error) {
 	databaseConfig, err := database.LoadConnectionPoolConfig()
 	if err != nil {
-		log.Fatalf("failed to load database config: %s", err)
+		return nil, fmt.Errorf("failed to load database config: %w", err)
 	}
 
 	db, err := database.NewConnectionPool(ctx, databaseConfig)
 	if err != nil {
-		log.Fatalf("failed to create database pool: %s", err)
+		return nil, fmt.Errorf("failed to create database pool: %w", err)
 	}
 
 	logger.InfoContext(ctx, "database connection established")
