@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"net/mail"
 	"strings"
 	"time"
@@ -23,6 +24,13 @@ type ValidationMode int
 const (
 	ValidationCreate ValidationMode = iota
 	ValidationUpdate
+)
+
+var (
+	ErrNameBlank          error = errors.New("name can not be blank")
+	ErrEmailBlank         error = errors.New("email can not be blank")
+	ErrPasswordBlank      error = errors.New("password can not be blank")
+	ErrInvalidEmailFormat error = errors.New("invalid format")
 )
 
 // Validate check if any field is blank, and with all leading and trailing white space removed
