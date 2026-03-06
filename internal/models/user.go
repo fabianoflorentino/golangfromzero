@@ -101,6 +101,6 @@ func (u *User) doPasswdHash(pwd string) ([]byte, error) {
 
 // isPasswdValid compares a bcrypt hashed password with its possible plaintext equivalent.
 // Returns nil on success, or an error on failure.
-func (u *User) isPasswdValid(pwdHashed, pwd string) error {
-	return bcrypt.CompareHashAndPassword([]byte(pwdHashed), []byte(pwd))
-}
+// func (u *User) isPasswdValid(pwdHashed, pwd string) error {
+// 	return bcrypt.CompareHashAndPassword([]byte(pwdHashed), []byte(pwd))
+// }
