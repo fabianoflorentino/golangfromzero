@@ -2,10 +2,12 @@ package models
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestUser_Validate(t *testing.T) {
@@ -102,6 +104,16 @@ func TestUser_Validate(t *testing.T) {
 			},
 			validationMode: ValidationCreate,
 			wantErr:        nil,
+		},
+		{
+			name: "password too long propagates hash error",
+			user: User{
+				Name:     "John Doe",
+				Email:    "john@example.com",
+				Password: strings.Repeat("a", 73),
+			},
+			validationMode: ValidationCreate,
+			wantErr:        bcrypt.ErrPasswordTooLong,
 		},
 	}
 
@@ -317,6 +329,14 @@ func TestUser_hashPasswd(t *testing.T) {
 			},
 			register: "new",
 			wantErr:  false,
+		},
+		{
+			name: "password too long returns error",
+			user: User{
+				Password: strings.Repeat("a", 73),
+			},
+			register: "new",
+			wantErr:  true,
 		},
 	}
 
