@@ -14,7 +14,8 @@ FROM base AS development
 WORKDIR /app
 
 RUN go install github.com/air-verse/air@latest \
-  && go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.1
+  && go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.1 \
+  && go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.1
 
 EXPOSE 8080
 
