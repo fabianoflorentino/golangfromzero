@@ -206,5 +206,5 @@ lint: ## Run linter inside the application container (requires golangci-lint)
 
 clean: ## Remove local binaries and temporary artifacts
 	@echo -e "$(YELLOW)🧹 Cleaning temporary artifacts...$(NC)"
-	@rm -f tmp/*.out tmp/*.log
+	@rm -f tmp/*.out tmp/*.log tmp/*.html
 	@echo -e "$(GREEN)✓ Temporary artifacts removed.$(NC)"
