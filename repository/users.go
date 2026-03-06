@@ -17,6 +17,12 @@ type UserRepository struct {
 	logger *slog.Logger
 }
 
+var (
+	ErrEmailAlreadyExist error = errors.New("email already used")
+	ErrPgCode                  = "23505"
+	ErrNoRows                  = errors.New("no rows in result set")
+)
+
 func NewUserRepository(db *pgxpool.Pool, logger *slog.Logger) *UserRepository {
 	return &UserRepository{
 		db:     db,
