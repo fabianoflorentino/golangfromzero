@@ -114,8 +114,9 @@ func getEnvAsInt32(env string, defaultValue int32) int32 {
 	if value := os.Getenv(env); value != "" {
 		var intValue int32
 
-		fmt.Sscanf(value, "%d", &intValue)
-		return intValue
+		if _, err := fmt.Sscanf(value, "%d", &intValue); err == nil {
+			return intValue
+		}
 	}
 
 	return defaultValue
