@@ -7,7 +7,7 @@
 .PHONY: help up down down/volumes restart logs logs/app logs/db ps shell \
         build/dev build/dev/clean build/prod \
         migrate/up migrate/down migrate/down/all migrate/create migrate/force migrate/version \
-        test test/local test/coverage \
+        test test/local test/coverage test/coverage/html \
         deploy/build deploy/push deploy \
         tidy fmt vet lint clean
 
@@ -159,6 +159,14 @@ test/coverage: ## Run tests with coverage report
 	@echo -e "$(BLUE)🧪 Running tests with coverage...$(NC)"
 	@docker compose exec app sh -c \
 		'go test ./... -coverprofile=tmp/coverage.out && go tool cover -func=tmp/coverage.out'
+
+test/coverage/html: ## Run tests and open HTML coverage report in the browser
+	@echo -e "$(BLUE)🧪 Running tests with HTML coverage report...$(NC)"
+	@docker compose exec app sh -c \
+		'go test ./... -coverprofile=tmp/coverage.out && go tool cover -html=tmp/coverage.out -o tmp/coverage.html'
+	@echo -e "$(GREEN)✓ Coverage report generated: tmp/coverage.html$(NC)"
+	@echo -e "$(YELLOW)🌐 Open in browser (WSL path):$(NC)"
+	@echo -e "$(GREEN)  \\\\\\\\wsl.localhost\\FedoraLinux-43$(PWD)/tmp/coverage.html$(NC)"
 
 ##@ Production Deploy
 
