@@ -91,11 +91,7 @@ func (u *User) hashPasswd(register string) error {
 
 // isNewRegister validate if registry is new.
 func (u *User) isNewRegister(mode ValidationMode) bool {
-	if mode == ValidationCreate {
-		return true
-	}
-
-	return false
+	return mode == ValidationCreate
 }
 
 // doPasswdHash returns the bcrypt hash of the password at the given cost
